@@ -140,9 +140,9 @@ It takes the following as inputs,
 \end{itemize}
 and gives the following as outputs:
 \begin{itemize}
-\item {\tt A'}: $N\times N$ matrix, where $A' = A + u1.v1 + u2.v2$
-\item {\tt x}: vector of length $N$, where $x = \beta A'y + z$
-\item {\tt w}: vector of length $N$, where $w = \alpha A'x$
+\item $\mathtt{\hat{A}}$: $N\times N$ matrix, where $\hat{A} = A + u1.v1 + u2.v2$
+\item {\tt x}: vector of length $N$, where $x = \beta \hat{A}^{T}y + z$
+\item {\tt w}: vector of length $N$, where $w = \alpha \hat{A}x$
 \end{itemize}
 
 \kernel{gesummv}
@@ -759,7 +759,7 @@ kernel & \mc1{c|}{Operations} & \mc1{c|}{Memory} & \mc1{c|}{O(Ops)} & \mc1{c|}{O
 \hline
 {\tt symm} & $\frac{5}{2}n^3+\frac{5}{2}n^2$ & $3n^2$ & $O(n^3)$ & $O(n^2)$\\
 \hline
-{\tt syr2k} & $6n^3+n^2$ & $3n^2$ & $O(n^3)$ & $O(n^2)$\\
+{\tt syr2k} & $3n^3+\frac{7}{2}n^2+\frac{1}{2}n$ & $3n^2$ & $O(n^3)$ & $O(n^2)$\\
 \hline
 {\tt syrk} & $\frac{3}{2}n^3+2n^2+\frac{1}{2}n$ & $3n^2$ & $O(n^3)$ & $O(n^2)$\\
 \hline
