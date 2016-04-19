@@ -27,12 +27,13 @@ void init_array(int n, int m,
   *beta = 1.2;
   for (i = 0; i < n; i++)
     for (j = 0; j < m; j++) {
-      A[i][j] = (DATA_TYPE) (i*j%n) / n;
-      B[i][j] = (DATA_TYPE) (i*j%m) / m;
+      A[i][j] = (DATA_TYPE) ((i*j+1)%n) / n;
+      B[i][j] = (DATA_TYPE) ((i*j+2)%m) / m;
     }
   for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
-      C[i][j] = (DATA_TYPE) (i*j%n) / m;
+    for (j = 0; j < n; j++) {
+      C[i][j] = (DATA_TYPE) ((i*j+3)%n) / m;
+    }
 }
 
 
@@ -69,22 +70,21 @@ void kernel_syr2k(int n, int m,
   int i, j, k;
 
 //BLAS PARAMS
-//TRANS = 'N' 
 //UPLO  = 'L'
+//TRANS = 'N' 
 //A is NxM
 //B is NxM
 //C is NxN
 #pragma scop
-  for (i = 0; i < _PB_N; i++)
-    for (j = 0; j < _PB_N; j++)
+  for (i = 0; i < _PB_N; i++) {
+    for (j = 0; j <= i; j++)
       C[i][j] *= beta;
-  for (i = 0; i < _PB_N; i++)
-    for (k = 0; k < _PB_M; k++) {
-      for (j = 0; j < _PB_N; j++)
+    for (k = 0; k < _PB_M; k++)
+      for (j = 0; j <= i; j++)
 	{
-	  C[i][j] += A[j][k] * alpha*B[i][k] + B[j][k] * alpha*A[i][k];
+	  C[i][j] += A[j][k]*alpha*B[i][k] + B[j][k]*alpha*A[i][k];
 	}
-     }
+  }
 #pragma endscop
 
 }
