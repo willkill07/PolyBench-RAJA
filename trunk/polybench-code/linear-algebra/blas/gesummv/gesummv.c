@@ -29,8 +29,8 @@ void init_array(int n,
     {
       x[i] = (DATA_TYPE)( i % n) / n;
       for (j = 0; j < n; j++) {
-	A[i][j] = (DATA_TYPE) (i*j % n) / n;
-	B[i][j] = (DATA_TYPE) (i*j % n) / n;
+	A[i][j] = (DATA_TYPE) ((i*j+1) % n) / n;
+	B[i][j] = (DATA_TYPE) ((i*j+2) % n) / n;
       }
     }
 }

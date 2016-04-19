@@ -28,13 +28,13 @@ void init_array(int ni, int nj, int nk, int nl,
   *beta = 1.2;
   for (i = 0; i < ni; i++)
     for (j = 0; j < nk; j++)
-      A[i][j] = (DATA_TYPE) (i*j % ni) / ni;
+      A[i][j] = (DATA_TYPE) ((i*j+1) % ni) / ni;
   for (i = 0; i < nk; i++)
     for (j = 0; j < nj; j++)
       B[i][j] = (DATA_TYPE) (i*(j+1) % nj) / nj;
   for (i = 0; i < nj; i++)
     for (j = 0; j < nl; j++)
-      C[i][j] = (DATA_TYPE) (i*(j+3) % nl) / nl;
+      C[i][j] = (DATA_TYPE) ((i*(j+3)+1) % nl) / nl;
   for (i = 0; i < ni; i++)
     for (j = 0; j < nl; j++)
       D[i][j] = (DATA_TYPE) (i*(j+2) % nk) / nk;
