@@ -25,7 +25,7 @@ gemm <- function(NI, NJ, NK) {
    
    for (i in 1:NI)
       for (j in 1:NJ)
-	     C[i,j] <- (((i-1)*(j-1)) %% NI) / NI;
+	     C[i,j] <- (((i-1)*(j-1)+1) %% NI) / NI;
 		 
    for (i in 1:NI)
       for (j in 1:NK)
@@ -66,7 +66,7 @@ gemver <- function (N) {
  
 
    Aprime <- A + u1 %o% v1 + u2 %o% v2;	
-   x <- beta * Aprime %*% y + z;	
+   x <- beta * t(Aprime) %*% y + z;	
    w <- alpha * Aprime %*% x;	
    
    list(Aprime, x, w);
@@ -83,8 +83,8 @@ gesummv <- function (N) {
       x[i] <- ((i-1) %% N) / N;
 	  
       for (j in 1:N) {
-	      A[i,j] <- (((i-1)*(j-1)) %% N) / N;
-	      B[i,j] <- (((i-1)*(j-1)) %% N) / N;
+	      A[i,j] <- (((i-1)*(j-1)+1) %% N) / N;
+	      B[i,j] <- (((i-1)*(j-1)+2) %% N) / N;
 	  }
    }
  
@@ -123,11 +123,11 @@ syrk <- function(M, N) {
    
    for (i in 1:N)
       for (j in 1:M)
-	     A[i,j] <- (((i-1)*(j-1)) %% N) / N;
+	     A[i,j] <- (((i-1)*(j-1)+1) %% N) / N;
 		 
    for (i in 1:N)
       for (j in 1:N)
-	     C[i,j] <- (((i-1)*(j-1)) %% M) / M;
+	     C[i,j] <- (((i-1)*(j-1)+2) %% M) / M;
 		 
 	res <- alpha * A %*% t(A) + beta * C;
 
@@ -144,13 +144,13 @@ syr2k <- function(M, N) {
    
    for (i in 1:N)
       for (j in 1:M) {
-	     A[i,j] <- (((i-1)*(j-1)) %% N) / N;
-	     B[i,j] <- (((i-1)*(j-1)) %% M) / M;
+	     A[i,j] <- (((i-1)*(j-1)+1) %% N) / N;
+	     B[i,j] <- (((i-1)*(j-1)+2) %% M) / M;
 	  }
 		 
    for (i in 1:N)
       for (j in 1:N)
-	     C[i,j] <- (((i-1)*(j-1)) %% N) / M;
+	     C[i,j] <- (((i-1)*(j-1)+3) %% N) / M;
 		 
 	res <- alpha * A %*% t(B) + alpha * B %*% t(A) + beta * C;
 
@@ -186,7 +186,7 @@ twomm <- function(NI, NJ, NK, NL) {
    
    for (i in 1:NI)
       for (j in 1:NK)
-	     A[i,j] <- (((i-1)*(j-1)) %% NI) / NI;
+	     A[i,j] <- (((i-1)*(j-1)+1) %% NI) / NI;
 		 
    for (i in 1:NK)
       for (j in 1:NJ)
@@ -194,7 +194,7 @@ twomm <- function(NI, NJ, NK, NL) {
 		 
    for (i in 1:NJ)
       for (j in 1:NL)
-	     C[i,j] <- (((i-1)*(j+2)) %% NL) / NL;
+	     C[i,j] <- (((i-1)*(j+2)+1) %% NL) / NL;
 		 
    for (i in 1:NI)
       for (j in 1:NL)
@@ -214,11 +214,11 @@ threemm <- function(NI, NJ, NK, NL, NM) {
    
    for (i in 1:NI)
       for (j in 1:NK)
-	     A[i,j] <- (((i-1)*(j-1)) %% NI) / (5*NI);
+	     A[i,j] <- (((i-1)*(j-1)+1) %% NI) / (5*NI);
 		 
    for (i in 1:NK)
       for (j in 1:NJ)
-	     B[i,j] <- (((i-1)*(j)) %% NJ) / (5*NJ);
+	     B[i,j] <- (((i-1)*(j)+2) %% NJ) / (5*NJ);
 		 
    for (i in 1:NJ)
       for (j in 1:NM)
@@ -226,7 +226,7 @@ threemm <- function(NI, NJ, NK, NL, NM) {
 		 
    for (i in 1:NM)
       for (j in 1:NL)
-	     D[i,j] <- (((i-1)*(j+1)) %% NK) / (5*NK);
+	     D[i,j] <- (((i-1)*(j+1)+2) %% NK) / (5*NK);
 		 
 		 
     E <- A %*% B;
@@ -351,7 +351,7 @@ trisolv <- function(N) {
    b <- c(0:(N-1))
    
    for (i in 1:N)
-      for (j in j:i)
+      for (j in 0:i)
 	     L[i,j] <- (((i-1)+N-(j-1)+1)*2) / N
 		 
 	res <- solve(L, b)
