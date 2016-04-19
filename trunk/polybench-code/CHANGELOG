@@ -1,4 +1,17 @@
 -----------------
+* Changes in 4.2:
+-----------------
+  - Fixed an issue with OpenMP pragma for flush_cache.
+    Reported by Sudheer Kumar <sudheer3@gmail.com>.
+  - Fixed a bug in Makefile generation (utilities/makefile-gen.pl). 
+    Reported by Willy Wolff <willy.mh.wolff@gmail.com>.
+  - Fixed a bug in syr2k that caused the kernel to perform twice the work.
+    It was computing the full symmetric output whereas the BLAS version
+    only computes one side of the symmetry.
+  - Input generation for some of the kernels has been updated to produce
+    fewer zeros in output.
+
+-----------------
 * Changes in 4.1:
 -----------------
   - Added LICENSE.txt
