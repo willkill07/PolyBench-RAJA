@@ -1,5 +1,5 @@
 * * * * * * * * * *
-* PolyBench/C 4.1 *
+* PolyBench/C 4.2 *
 * * * * * * * * * *
 
 Copyright (c) 2011-2015 the Ohio State University.
@@ -25,7 +25,7 @@ include:
 
 
 PolyBench is currently available in C and in Fortran:
-- See PolyBench/C 4.1 for the C version
+- See PolyBench/C 4.2 for the C version
 - See PolyBench/Fortran 1.0 for the Fortran version (based on PolyBench/C 3.2)
 
 Available benchmarks (PolyBench/C 4.1)
@@ -64,6 +64,12 @@ trmm		Triangular matrix-multiply
 
 See the end of the README for mailing lists, instructions to use
 PolyBench, etc.
+
+-------------
+* New in 4.2:
+-------------
+ - Fixed a bug in syr2k.
+ - Other minor bug fixes and updates.
 
 -------------
 * New in 4.1:
