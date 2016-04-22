@@ -147,14 +147,12 @@ expanded. These variables were changed to only use a scalar.
 - Added an option to build the test suite with constant loop bounds
   (default is parametric loop bounds)
 
-
 -------------
 * New in 3.1:
 -------------
 
 - Fixed a typo in polybench.h, causing compilation problems for 3D arrays.
 - Set by default heap arrays, stack arrays are now optional.
-
 
 -------------
 * New in 3.0:
@@ -196,10 +194,10 @@ See utilities/benchmark_list for paths to each files.
 See doc/polybench.pdf for detailed description of the algorithms.
 
 
+
 ------------------------------
 * Sample compilation commands:
 ------------------------------
-
 
 ** To compile a benchmark without any monitoring:
 -------------------------------------------------
@@ -221,7 +219,6 @@ $> ./atax_ref 2>atax_ref.out
 
 
 
-
 -------------------------
 * Some available options:
 -------------------------
@@ -229,35 +226,58 @@ $> ./atax_ref 2>atax_ref.out
 They are all passed as macro definitions during compilation time (e.g,
 -Dname_of_the_option).
 
+** Typical options:
+-------------------
+
 - POLYBENCH_TIME: output execution time (gettimeofday) [default: off]
+
+- MINI_DATASET, SMALL_DATASET, MEDIUM_DATASET, LARGE_DATASET,
+  EXTRALARGE_DATASET: set the dataset size to be used
+  [default: STANDARD_DATASET]
+
+- POLYBENCH_DUMP_ARRAYS: dump all live-out arrays on stderr [default: off]
+
+- POLYBENCH_STACK_ARRAYS: use stack allocation instead of malloc [default: off]
+
+
+** Options that may lead to better performance:
+-----------------------------------------------
+
+- POLYBENCH_USE_RESTRICT: Use restrict keyword to allow compilers to
+  assume absence of aliasing. [default: off]
+
+- POLYBENCH_USE_SCALAR_LB: Use scalar loop bounds instead of parametric ones.
+  [default: off]
+
+- POLYBENCH_PADDING_FACTOR: Pad all dimensions of all arrays by this
+  value [default: 0]
+
+- POLYBENCH_INTER_ARRAY_PADDING_FACTOR: Offset the starting address of
+  polybench arrays allocated on the heap (default) by a multiple of
+  this value [default: 0]
+
+- POLYBENCH_USE_C99_PROTO: Use standard C99 prototype for the functions.
+  [default: off]
+
+
+** Timing/profiling options:
+----------------------------
+
+- POLYBENCH_PAPI: turn on papi timing (see below).
+
+- POLYBENCH_CACHE_SIZE_KB: cache size to flush, in kB [default: 33MB]
 
 - POLYBENCH_NO_FLUSH_CACHE: don't flush the cache before calling the
   timer [default: flush the cache]
+
+- POLYBENCH_CYCLE_ACCURATE_TIMER: Use Time Stamp Counter to monitor
+  the execution time of the kernel [default: off]
 
 - POLYBENCH_LINUX_FIFO_SCHEDULER: use FIFO real-time scheduler for the
   kernel execution, the program must be run as root, under linux only,
   and compiled with -lc [default: off]
 
-- POLYBENCH_CACHE_SIZE_KB: cache size to flush, in kB [default: 33MB]
 
-- POLYBENCH_STACK_ARRAYS: use stack allocation instead of malloc [default: off]
-
-- POLYBENCH_DUMP_ARRAYS: dump all live-out arrays on stderr [default: off]
-
-- POLYBENCH_CYCLE_ACCURATE_TIMER: Use Time Stamp Counter to monitor
-  the execution time of the kernel [default: off]
-
-- POLYBENCH_PAPI: turn on papi timing (see below).
-
-- MINI_DATASET, SMALL_DATASET, STANDARD_DATASET, LARGE_DATASET,
-  EXTRALARGE_DATASET: set the dataset size to be used
-  [default: STANDARD_DATASET]
-
-- POLYBENCH_USE_C99_PROTO: Use standard C99 prototype for the functions.
-
-- POLYBENCH_USE_SCALAR_LB: Use scalar loop bounds instead of parametric ones.
-
-- POLYBENCH_USE_RESTRICT: Use restrict keyword to allow compilers to assume absence of aliasing.
 
 ---------------
 * PAPI support:
@@ -304,7 +324,6 @@ elapsed cycles.
 
 
 
-
 ----------------------------------------
 * Generating macro-free benchmark suite:
 ----------------------------------------
@@ -320,6 +339,7 @@ the desired configuration, for instance to create a full C99 version
 
 $> PARGS="-I utilities -DPOLYBENCH_USE_C99_PROTO";
 $> for i in `cat utilities/benchmark_list`; do perl utilities/create_cpped_version.pl $i "$PARGS"; done
+
 
 
 ------------------

@@ -1,5 +1,12 @@
 2016-04-22  Louis-Noel Pouchet  <pouchet@cse.ohio-state.edu>
 
+	* polybench.c,
+	* polybench.h: Add support for inter-array padding.
+	* README,
+	* CHANGELOG: Add doc for the inter-array padding.
+
+2016-04-22  Louis-Noel Pouchet  <pouchet@cse.ohio-state.edu>
+
 	* CHANGELOG,
 	* LICENSE.txt,
 	* README: Fix minor typos to prepare for polybench 4.2.
