@@ -1,9 +1,15 @@
+2016-04-22  Louis-Noel Pouchet  <pouchet@cse.ohio-state.edu>
+
+	* CHANGELOG,
+	* LICENSE.txt,
+	* README: Fix minor typos to prepare for polybench 4.2.
+
 2016-04-19 Tomofumi Yuki <tomofumi.yuki@inria.fr>
 	* utilities/makefile-gen.pl: Fixed a bug in Makefile generation where
 	EXTRA_FLAGS was not used. Reported by Willy Wolff <willy.mh.wolff@gmail.com>.
 	* gemver: Fixed the definition of x in gemver; was missing a transpose. The
 	C implementation was correct but the R version and the pdf was not.
-	* syr2k: This kernel was doing twice the work due to missing constraint on 
+	* syr2k: This kernel was doing twice the work due to missing constraint on
 	j loop. It did not affect the output due to symmetry.
 	* gemm,gesummv,syrk,syr2k,2mm,3mm: Updated the input generation to avoid
 	some zeros in the output.
