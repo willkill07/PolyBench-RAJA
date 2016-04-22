@@ -4,6 +4,9 @@
 	* polybench.h: Add support for inter-array padding.
 	* README,
 	* CHANGELOG: Add doc for the inter-array padding.
+	* utilities/time_benchmark.sh: Fix missing ECHO_CMD variable def.
+	* utilities/run_all_benchmarks.sh: Simple script to run all
+	polybenchs.
 
 2016-04-22  Louis-Noel Pouchet  <pouchet@cse.ohio-state.edu>
 
