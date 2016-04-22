@@ -5,7 +5,7 @@
 ## Contact: <pouchet@cse.ohio-state.edu>
 ##
 ## Started on  Sat Oct 29 00:03:48 2011 Louis-Noel Pouchet
-## Last update Sat Oct 29 01:16:34 2011 Louis-Noel Pouchet
+## Last update Fri Apr 22 15:20:33 2016 Louis-Noel Pouchet
 ##
 
 ## Maximal variance accepted between the 3 median runs for performance results.
@@ -19,6 +19,7 @@ if [ $# -ne 1 ]; then
     exit 1;
 fi;
 
+ECHO_CMD=/bin/echo
 
 compute_mean_exec_time()
 {
@@ -54,8 +55,8 @@ compute_mean_exec_time()
     fi;
     compvar=`echo "$variance $VARIANCE_ACCEPTED" | awk '{ if ($1 < $2) print "ok"; else print "error"; }'`;
     if [ "$compvar" = "error" ]; then
-	$ECHO_CMD "\033[31m[WARNING]\033[0m Variance is above thresold, unsafe performance measurement";
-	$ECHO_CMD "        => max deviation=$variance%, tolerance=$VARIANCE_ACCEPTED%";
+	echo "[WARNING] Variance is above thresold, unsafe performance measurement";
+	echo "        => max deviation=$variance%, tolerance=$VARIANCE_ACCEPTED%";
 	WARNING_VARIANCE="$WARNING_VARIANCE\n$benchcomputed: max deviation=$variance%, tolerance=$VARIANCE_ACCEPTED%";
     else
 	echo "[INFO] Maximal deviation from arithmetic mean of 3 average runs: $variance%";
