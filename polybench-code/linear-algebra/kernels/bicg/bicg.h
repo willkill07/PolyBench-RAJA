@@ -11,27 +11,27 @@
 #  ifdef MINI_DATASET
 #   define M 38
 #   define N 42
-#  endif 
+#  endif
 
 #  ifdef SMALL_DATASET
 #   define M 116
 #   define N 124
-#  endif 
+#  endif
 
 #  ifdef MEDIUM_DATASET
 #   define M 390
 #   define N 410
-#  endif 
+#  endif
 
 #  ifdef LARGE_DATASET
 #   define M 1900
 #   define N 2100
-#  endif 
+#  endif
 
 #  ifdef EXTRALARGE_DATASET
 #   define M 1800
 #   define N 2200
-#  endif 
+#  endif
 
 
 #endif /* !(M N) */
@@ -48,7 +48,7 @@
 #ifdef DATA_TYPE_IS_INT
 #  define DATA_TYPE int
 #  define DATA_PRINTF_MODIFIER "%d "
-#endif 
+#endif
 
 #ifdef DATA_TYPE_IS_FLOAT
 #  define DATA_TYPE float
@@ -69,4 +69,3 @@
 # endif
 
 #endif /* !_BICG_H */
-

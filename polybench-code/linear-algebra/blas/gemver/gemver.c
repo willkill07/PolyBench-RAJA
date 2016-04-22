@@ -35,7 +35,7 @@ void init_array (int n,
   DATA_TYPE fn = (DATA_TYPE)n;
 
   for (i = 0; i < n; i++)
-    {   
+    {
       u1[i] = i;
       u2[i] = ((i+1)/fn)/2.0;
       v1[i] = ((i+1)/fn)/4.0;
@@ -46,7 +46,7 @@ void init_array (int n,
       w[i] = 0.0;
       for (j = 0; j < n; j++)
         A[i][j] = (DATA_TYPE) (i*j % n) / n;
-    }   
+    }
 }
 
 

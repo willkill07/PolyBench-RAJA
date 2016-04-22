@@ -5,7 +5,7 @@
 ## Contact: <pouchet@cse.ohio-state.edu>
 ##
 ## Started on  Sat Oct 29 00:03:48 2011 Louis-Noel Pouchet
-## Last update Fri Apr 22 15:20:33 2016 Louis-Noel Pouchet
+## Last update Fri Apr 22 15:39:13 2016 Louis-Noel Pouchet
 ##
 
 ## Maximal variance accepted between the 3 median runs for performance results.
@@ -19,7 +19,6 @@ if [ $# -ne 1 ]; then
     exit 1;
 fi;
 
-ECHO_CMD=/bin/echo
 
 compute_mean_exec_time()
 {
@@ -66,7 +65,7 @@ compute_mean_exec_time()
 }
 
 echo "[INFO] Running 5 times $1..."
-echo "[INFO] Maximal variance authorized on 3 average runs: $VARIANCE_ACCEPTED%)...";
+echo "[INFO] Maximal variance authorized on 3 average runs: $VARIANCE_ACCEPTED%...";
 
 $1 > ____tempfile.data.polybench;
 $1 >> ____tempfile.data.polybench;

@@ -71,7 +71,7 @@ void kernel_syr2k(int n, int m,
 
 //BLAS PARAMS
 //UPLO  = 'L'
-//TRANS = 'N' 
+//TRANS = 'N'
 //A is NxM
 //B is NxM
 //C is NxN

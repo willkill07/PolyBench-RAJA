@@ -7,7 +7,7 @@
 
 /* Include polybench common header. */
 #include <polybench.h>
-  
+
 /* Include benchmark-specific header. */
 #include "deriche.h"
 
@@ -54,7 +54,7 @@ void print_array(int w, int h,
 /* Main computational kernel. The whole function will be timed,
    including the call and return. */
 /* Original code provided by Gael Deest */
-static 
+static
 void kernel_deriche(int w, int h, DATA_TYPE alpha,
        DATA_TYPE POLYBENCH_2D(imgIn, W, H, w, h),
        DATA_TYPE POLYBENCH_2D(imgOut, W, H, w, h),
@@ -65,7 +65,7 @@ void kernel_deriche(int w, int h, DATA_TYPE alpha,
     DATA_TYPE xp1, xp2;
     DATA_TYPE tp1, tp2;
     DATA_TYPE yp1, yp2;
-   
+
     DATA_TYPE k;
     DATA_TYPE a1, a2, a3, a4, a5, a6, a7, a8;
     DATA_TYPE b1, b2, c1, c2;
@@ -122,7 +122,7 @@ void kernel_deriche(int w, int h, DATA_TYPE alpha,
             ym1 = y1 [i][j];
         }
     }
-    
+
 
     for (j=0; j<_PB_H; j++) {
         tp1 = SCALAR_VAL(0.0);
