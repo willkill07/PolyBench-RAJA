@@ -24,6 +24,12 @@
 #  define POLYBENCH_PADDING_FACTOR 0
 # endif
 
+/* Inter-array padding, for use with . By default, none is used. */
+# ifndef POLYBENCH_INTER_ARRAY_PADDING_FACTOR
+/* default: */
+#  define POLYBENCH_INTER_ARRAY_PADDING_FACTOR 0
+# endif
+
 
 /* C99 arrays in function prototype. By default, do not use. */
 # ifdef POLYBENCH_USE_C99_PROTO
@@ -194,15 +200,8 @@ extern void polybench_timer_stop();
 extern void polybench_timer_print();
 # endif
 
-/* Function declaration. */
-# ifdef POLYBENCH_TIME
-extern void polybench_timer_start();
-extern void polybench_timer_stop();
-extern void polybench_timer_print();
-# endif
-
+/* PAPI support. */
 # ifdef POLYBENCH_PAPI
-extern void polybench_prepare_instruments();
 extern int polybench_papi_start_counter(int evid);
 extern void polybench_papi_stop_counter(int evid);
 extern void polybench_papi_init();
@@ -212,6 +211,12 @@ extern void polybench_papi_print();
 
 /* Function prototypes. */
 extern void* polybench_alloc_data(unsigned long long int n, int elt_size);
+
+/* PolyBench internal functions that should not be directly called by */
+/* the user, unless when designing customized execution profiling */
+/* approaches. */
+extern void polybench_flush_cache();
+extern void polybench_prepare_instruments();
 
 
 #endif /* !POLYBENCH_H */

@@ -12,6 +12,8 @@
 # include <omp.h>
 #endif
 
+#include "polybench.h"
+
 /* By default, collect PAPI counters on thread 0. */
 #ifndef POLYBENCH_THREAD_MONITOR
 # define POLYBENCH_THREAD_MONITOR 0
@@ -44,6 +46,13 @@ double polybench_program_total_flops = 0;
 double polybench_t_start, polybench_t_end;
 /* Timer code (RDTSC). */
 unsigned long long int polybench_c_start, polybench_c_end;
+
+/* Global counter for the inter-array padding. Incremented by */
+/* POLYBENCH_INTER_ARRAY_PADDING_FACTOR after each call to xmalloc, */
+/* and the useful allocated data returned by xmalloc is offset by this */
+/* value (which means the total size allocated is */
+/* offset_inter_array_padding + the requested allocation size).  */
+static size_t polybench_xmalloc_offset_inter_array_padding = 0;
 
 static
 double rtclock()
@@ -370,17 +379,33 @@ void polybench_timer_print()
 
 
 static
-void *
+void*
 xmalloc (size_t num)
 {
   void* cur = NULL;
-  int ret = posix_memalign (&cur, 32, num);
+
+  // Implement inter-array padding. Shown to have a possible dramatic
+  // effect for cases such as, e.g.,
+  //   for (i = ...
+  //     C[i] = A[i] + B[i];
+  //
+  // as if A[i] & FFFFF == C[i] & FFFFF, that is they have the same
+  // lower 20 bits, the CPU is not able to do good memory
+  // disambiguiation and the code can be 2x or more slower than when
+  // their lower bits differ. Inter-array padding solves this issue.
+  polybench_xmalloc_offset_inter_array_padding +=
+    POLYBENCH_INTER_ARRAY_PADDING_FACTOR;
+  num += polybench_xmalloc_offset_inter_array_padding;
+
+  int ret = posix_memalign (&cur, 4096, num);
+
   if (! cur || ret)
     {
       fprintf (stderr, "[PolyBench] posix_memalign: cannot allocate memory");
       exit (1);
     }
-  return cur;
+
+  return cur + polybench_xmalloc_offset_inter_array_padding;
 }
 
 
