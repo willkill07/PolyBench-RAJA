@@ -13,35 +13,35 @@
 #   define NJ 18
 #   define NK 22
 #   define NL 24
-#  endif 
+#  endif
 
 #  ifdef SMALL_DATASET
 #   define NI 40
 #   define NJ 50
 #   define NK 70
 #   define NL 80
-#  endif 
+#  endif
 
 #  ifdef MEDIUM_DATASET
 #   define NI 180
 #   define NJ 190
 #   define NK 210
 #   define NL 220
-#  endif 
+#  endif
 
 #  ifdef LARGE_DATASET
 #   define NI 800
 #   define NJ 900
 #   define NK 1100
 #   define NL 1200
-#  endif 
+#  endif
 
 #  ifdef EXTRALARGE_DATASET
 #   define NI 1600
 #   define NJ 1800
 #   define NK 2200
 #   define NL 2400
-#  endif 
+#  endif
 
 
 #endif /* !(NI NJ NK NL) */
@@ -60,7 +60,7 @@
 #ifdef DATA_TYPE_IS_INT
 #  define DATA_TYPE int
 #  define DATA_PRINTF_MODIFIER "%d "
-#endif 
+#endif
 
 #ifdef DATA_TYPE_IS_FLOAT
 #  define DATA_TYPE float
@@ -81,4 +81,3 @@
 # endif
 
 #endif /* !_2MM_H */
-

@@ -65,7 +65,7 @@ void kernel_syrk(int n, int m,
   int i, j, k;
 
 //BLAS PARAMS
-//TRANS = 'N' 
+//TRANS = 'N'
 //UPLO  = 'L'
 // =>  Form  C := alpha*A*A**T + beta*C.
 //A is NxM

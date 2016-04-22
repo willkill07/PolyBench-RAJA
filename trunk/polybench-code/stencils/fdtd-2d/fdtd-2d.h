@@ -12,31 +12,31 @@
 #   define TMAX 20
 #   define NX 20
 #   define NY 30
-#  endif 
+#  endif
 
 #  ifdef SMALL_DATASET
 #   define TMAX 40
 #   define NX 60
 #   define NY 80
-#  endif 
+#  endif
 
 #  ifdef MEDIUM_DATASET
 #   define TMAX 100
 #   define NX 200
 #   define NY 240
-#  endif 
+#  endif
 
 #  ifdef LARGE_DATASET
 #   define TMAX 500
 #   define NX 1000
 #   define NY 1200
-#  endif 
+#  endif
 
 #  ifdef EXTRALARGE_DATASET
 #   define TMAX 1000
 #   define NX 2000
 #   define NY 2600
-#  endif 
+#  endif
 
 
 #endif /* !(TMAX NX NY) */
@@ -54,7 +54,7 @@
 #ifdef DATA_TYPE_IS_INT
 #  define DATA_TYPE int
 #  define DATA_PRINTF_MODIFIER "%d "
-#endif 
+#endif
 
 #ifdef DATA_TYPE_IS_FLOAT
 #  define DATA_TYPE float
@@ -75,4 +75,3 @@
 # endif
 
 #endif /* !_FDTD_2D_H */
-

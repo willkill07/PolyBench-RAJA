@@ -10,23 +10,23 @@
 /* Define sample dataset sizes. */
 #  ifdef MINI_DATASET
 #   define N 40
-#  endif 
+#  endif
 
 #  ifdef SMALL_DATASET
 #   define N 120
-#  endif 
+#  endif
 
 #  ifdef MEDIUM_DATASET
 #   define N 400
-#  endif 
+#  endif
 
 #  ifdef LARGE_DATASET
 #   define N 2000
-#  endif 
+#  endif
 
 #  ifdef EXTRALARGE_DATASET
 #   define N 4000
-#  endif 
+#  endif
 
 
 #endif /* !(N) */
@@ -42,7 +42,7 @@
 #ifdef DATA_TYPE_IS_INT
 #  define DATA_TYPE int
 #  define DATA_PRINTF_MODIFIER "%d "
-#endif 
+#endif
 
 #ifdef DATA_TYPE_IS_FLOAT
 #  define DATA_TYPE float
@@ -63,4 +63,3 @@
 # endif
 
 #endif /* !_TRISOLV_H */
-
