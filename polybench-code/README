@@ -2,7 +2,7 @@
 * PolyBench/C 4.2 *
 * * * * * * * * * *
 
-Copyright (c) 2011-2015 the Ohio State University.
+Copyright (c) 2011-2016 the Ohio State University.
 
 Contact:
    Louis-Noel Pouchet <pouchet@cse.ohio-state.edu>
@@ -28,7 +28,7 @@ PolyBench is currently available in C and in Fortran:
 - See PolyBench/C 4.2 for the C version
 - See PolyBench/Fortran 1.0 for the Fortran version (based on PolyBench/C 3.2)
 
-Available benchmarks (PolyBench/C 4.1)
+Available benchmarks (PolyBench/C 4.2)
 
 Benchmark	Description
 2mm		2 Matrix Multiplications (E=A.B; F=E.C; G=F+D)
@@ -69,13 +69,14 @@ PolyBench, etc.
 * New in 4.2:
 -------------
  - Fixed a bug in syr2k.
- - Other minor bug fixes and updates.
+ - Changed the data initialization function of several benchmarks.
+ - Minor updates in the documentation and PolyBench API.
 
 -------------
 * New in 4.1:
 -------------
  - Added LICENSE.txt
- - Fixed minor issues with cholesky both in documentation and implementation. 
+ - Fixed minor issues with cholesky both in documentation and implementation.
    (Reported by François Gindraud)
  - Simplified the macros for switching between data types. Now users
    may specify DATA_TYPE_IS_XXX where XXX is one of FLOAT/DOUBLE/INT

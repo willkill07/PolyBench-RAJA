@@ -2,7 +2,7 @@ OHIO STATE UNIVERSITY SOFTWARE DISTRIBUTION LICENSE
 
 PolyBench/C, a collection of benchmarks containing static control
 parts (the “Software”)
-Copyright (c) 2010-2015, Ohio State University. All rights reserved.
+Copyright (c) 2010-2016, Ohio State University. All rights reserved.
 
 The Software is available for download and use subject to the terms
 and conditions of this License.  Access or use of the Software
