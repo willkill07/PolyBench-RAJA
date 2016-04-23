@@ -43,7 +43,7 @@ foreach $cat (@categories) {
         my $kernel = $dir;
         my $targetDir = $target.'/'.$dir;
         my $command = "cd $targetDir; make clean; make; ./$kernel";
-	$command .= " 2>> $OUTFILE";
+	$command .= " 2>> $OUTFILE" if ($OUTFILE ne '');
         print($command."\n");
         system($command);
    }
