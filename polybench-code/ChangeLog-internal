@@ -1,3 +1,9 @@
+2016-04-23  Louis-Noel Pouchet  <pouchet@cse.ohio-state.edu>
+
+	* polybench.c,
+	* polybench.h,
+	* CHANGELOG: Fix inter-array padding patch.
+
 2016-04-22  Louis-Noel Pouchet  <pouchet@cse.ohio-state.edu>
 
 	* polybench.c,

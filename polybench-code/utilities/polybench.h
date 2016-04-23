@@ -1,4 +1,6 @@
 /*
+ * polybench.h: this file is part of PolyBench/C
+ *
  * Polybench header for instrumentation.
  *
  * Programs must be compiled with `-I utilities utilities/polybench.c'
@@ -28,6 +30,9 @@
 # ifndef POLYBENCH_INTER_ARRAY_PADDING_FACTOR
 /* default: */
 #  define POLYBENCH_INTER_ARRAY_PADDING_FACTOR 0
+#  undef POLYBENCH_ENABLE_INTARRAY_PAD
+# else
+#  define POLYBENCH_ENABLE_INTARRAY_PAD
 # endif
 
 
@@ -68,7 +73,11 @@
 */
 # ifndef POLYBENCH_STACK_ARRAYS
 #  define POLYBENCH_ARRAY(x) *x
-#  define POLYBENCH_FREE_ARRAY(x) free((void*)x);
+#  ifdef POLYBENCH_ENABLE_INTARRAY_PAD
+#   define POLYBENCH_FREE_ARRAY(x) polybench_free_data((void*)x);
+#  else
+#   define POLYBENCH_FREE_ARRAY(x) free((void*)x);
+#  endif
 #  define POLYBENCH_DECL_VAR(x) (*x)
 # else
 #  define POLYBENCH_ARRAY(x) x
@@ -211,6 +220,7 @@ extern void polybench_papi_print();
 
 /* Function prototypes. */
 extern void* polybench_alloc_data(unsigned long long int n, int elt_size);
+extern void polybench_free_data(void* ptr);
 
 /* PolyBench internal functions that should not be directly called by */
 /* the user, unless when designing customized execution profiling */
