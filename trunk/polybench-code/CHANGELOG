@@ -10,8 +10,8 @@
     only computes one side of the symmetry.
   - Input generation for some of the kernels has been updated to produce
     fewer zeros in output.
-   - Add support for inter-array padding when using heap allocation,
-     and adjust the allocation alignment with posix_memalign to 4096.
+  - Add support for inter-array padding when using heap allocation,
+    and adjust the allocation alignment with posix_memalign to 4096.
 
 -----------------
 * Changes in 4.1:
