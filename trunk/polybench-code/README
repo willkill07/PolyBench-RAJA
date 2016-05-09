@@ -31,8 +31,8 @@ PolyBench is currently available in C and in Fortran:
 Available benchmarks (PolyBench/C 4.2)
 
 Benchmark	Description
-2mm		2 Matrix Multiplications (E=A.B; F=E.C; G=F+D)
-3mm		3 Matrix Multiplications (E=A.B; F=C.D; G=E.F)
+2mm		2 Matrix Multiplications (alpha * A * B * C + beta * D)
+3mm		3 Matrix Multiplications ((A*B)*(C*D))
 adi		Alternating Direction Implicit solver
 atax		Matrix Transpose and Vector Multiplication
 bicg		BiCG Sub Kernel of BiCGStab Linear Solver
@@ -51,13 +51,13 @@ head-3d		Heat equation over 3D data domain
 jacobi-1D	1-D Jacobi stencil computation
 jacobi-2D	2-D Jacobi stencil computation
 lu		LU decomposition
-ludcmp		LU decomposition followed by FS
+ludcmp		LU decomposition followed by Forward Substitution
 mvt		Matrix Vector Product and Transpose
 nussinov	Dynamic programming algorithm for sequence alignment
 seidel		2-D Seidel stencil computation
 symm		Symmetric matrix-multiply
-syr2k		Symmetric rank-2k operations
-syrk		Symmetric rank-k operations
+syr2k		Symmetric rank-2k update
+syrk		Symmetric rank-k update
 trisolv		Triangular solver
 trmm		Triangular matrix-multiply
 
