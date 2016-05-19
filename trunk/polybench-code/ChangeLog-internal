@@ -1,3 +1,8 @@
+2016-05-19  Louis-Noel Pouchet  <pouchet@cse.ohio-state.edu>
+
+	* polybench.c: Fix PAPI compilation problem, and change in API for
+	PAPI 5.4.3
+
 2016-04-23  Louis-Noel Pouchet  <pouchet@cse.ohio-state.edu>
 
 	* polybench.c,

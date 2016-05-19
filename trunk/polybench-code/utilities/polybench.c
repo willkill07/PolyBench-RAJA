@@ -14,7 +14,13 @@
 # include <omp.h>
 #endif
 
-#include "polybench.h"
+#if defined(POLYBENCH_PAPI)
+# undef POLYBENCH_PAPI
+# include "polybench.h"
+# define POLYBENCH_PAPI
+#else
+# include "polybench.h"
+#endif
 
 /* By default, collect PAPI counters on thread 0. */
 #ifndef POLYBENCH_THREAD_MONITOR
@@ -157,8 +163,15 @@ void test_fail(char *file, int line, char *call, int retval)
   else
     {
       char errstring[PAPI_MAX_STR_LEN];
+      // PAPI 5.4.3 has changed the API for PAPI_perror.
+      #if defined (PAPI_VERSION) && ((PAPI_VERSION_MAJOR(PAPI_VERSION) == 5 && PAPI_VERSION_MINOR(PAPI_VERSION) >= 4) || PAPI_VERSION_MAJOR(PAPI_VERSION) > 5)
+      fprintf (stdout, "Error in %s: ", call);
+      PAPI_perror (NULL);
+      fprintf ("\n");
+      #else
       PAPI_perror (retval, errstring, PAPI_MAX_STR_LEN);
       fprintf (stdout,"Error in %s: %s\n", call, errstring);
+      #endif
     }
   fprintf (stdout,"\n");
   if (PAPI_is_initialized ())
