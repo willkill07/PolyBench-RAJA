@@ -1,6 +1,6 @@
-* * * * * * * * * * * * *
-* PolyBench/C 4.2.1-pre *
-* * * * * * * * * * * * *
+* * * * * * * * * * * * * * *
+* PolyBench/C 4.2.1 (beta)  *
+* * * * * * * * * * * * * * *
 
 Copyright (c) 2011-2016 the Ohio State University.
 
@@ -65,9 +65,9 @@ trmm		Triangular matrix-multiply
 See the end of the README for mailing lists, instructions to use
 PolyBench, etc.
 
--------------------
-* New in 4.2.1-pre:
--------------------
+--------------------
+* New in 4.2.1-beta:
+--------------------
  - Fix a bug in PAPI support, introduced in 4.2
  - Support PAPI 5.4.x
 
