@@ -1,3 +1,10 @@
+-------------------
+* Changes in 4.2.1:
+-------------------
+  - Fixed an issue with PAPI support.
+    Reported by Keyur Joshi <cs13b1014@iith.ac.in>
+  - Added support for PAPI 5.4.x.
+
 -----------------
 * Changes in 4.2:
 -----------------
