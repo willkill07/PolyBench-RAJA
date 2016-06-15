@@ -1,0 +1,4 @@
+-std=c++11
+-I./RAJA/include
+-I./src/C
+-I./src/RAJA

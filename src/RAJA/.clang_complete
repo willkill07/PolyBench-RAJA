@@ -1,0 +1,4 @@
+-I.
+-I../../RAJA/include
+-std=c++11
+-fopenmp

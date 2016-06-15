@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 /* Include polybench common header. */
-#include <polybench.h>
+#include "polybench_raja.hpp"
 /* Include benchmark-specific header. */
 #include "correlation.hpp"
 

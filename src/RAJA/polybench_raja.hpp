@@ -20,6 +20,9 @@
 
 #include <cstdlib>
 
+#define RAJA_ENABLE_NESTED 1
+#include <RAJA/RAJA.hxx>
+
 extern double polybench_program_total_flops;
 extern void polybench_timer_start();
 extern void polybench_timer_stop();

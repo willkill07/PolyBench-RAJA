@@ -4,10 +4,38 @@
 #include <string.h>
 #include <math.h>
 /* Include polybench common header. */
-#include <polybench.h>
+#include "polybench_raja.hpp"
 /* Include benchmark-specific header. */
 #include "2mm.hpp"
 
+RAJA::RangeSegment IDir (0, NI);
+RAJA::RangeSegment JDir (0, NJ);
+RAJA::RangeSegment KDir (0, NK);
+RAJA::RangeSegment LDir (0, NL);
+
+using Independent2D = RAJA::NestedPolicy <
+  RAJA::ExecList <
+    RAJA::omp_collapse_nowait_exec,
+    RAJA::omp_collapse_nowait_exec
+  >,
+  RAJA::OMP_Parallel<RAJA::Execute>
+>;
+
+using Independent2DTiled = RAJA::NestedPolicy <
+  RAJA::ExecList <
+    RAJA::omp_collapse_nowait_exec,
+    RAJA::omp_collapse_nowait_exec
+  >,
+  RAJA::OMP_Parallel<
+    RAJA::Tile<
+      RAJA::TileList<
+        RAJA::tile_fixed<64>,
+        RAJA::tile_fixed<64>
+      >,
+      RAJA::Permute <RAJA::PERM_IJ>
+    >
+  >
+>;
 
 static void init_array(int ni,
                        int nj,
@@ -22,18 +50,19 @@ static void init_array(int ni,
   int i, j;
   *alpha = 1.5;
   *beta = 1.2;
-  for (i = 0; i < ni; i++)
-    for (j = 0; j < nk; j++)
-      A[i][j] = (double)((i * j + 1) % ni) / ni;
-  for (i = 0; i < nk; i++)
-    for (j = 0; j < nj; j++)
-      B[i][j] = (double)(i * (j + 1) % nj) / nj;
-  for (i = 0; i < nj; i++)
-    for (j = 0; j < nl; j++)
-      C[i][j] = (double)((i * (j + 3) + 1) % nl) / nl;
-  for (i = 0; i < ni; i++)
-    for (j = 0; j < nl; j++)
-      D[i][j] = (double)(i * (j + 2) % nk) / nk;
+
+  RAJA::forallN <Independent2D> (IDir, KDir, [=] (int i, int j) {
+    A[i][j] = (double)((i * j + 1) % ni) / ni;
+  });
+  RAJA::forallN <Independent2D> (KDir, JDir, [=] (int i, int j) {
+    B[i][j] = (double)(i * (j + 1) % nj) / nj;
+  });
+  RAJA::forallN <Independent2D> (JDir, LDir, [=] (int i, int j) {
+    C[i][j] = (double)((i * (j + 3) + 1) % nl) / nl;
+  });
+  RAJA::forallN <Independent2D> (IDir, LDir, [=] (int i, int j) {
+    D[i][j] = (double)(i * (j + 2) % nk) / nk;
+  });
 }
 
 static void print_array(int ni, int nl, double D[NI][NL]) {
@@ -62,18 +91,16 @@ static void kernel_2mm(int ni,
                        double D[NI][NL]) {
   int i, j, k;
 #pragma scop
-  for (i = 0; i < ni; i++)
-    for (j = 0; j < nj; j++) {
+  RAJA::forallN <Independent2DTiled> (IDir, JDir, [=] (int i, int j) {
       tmp[i][j] = 0.0;
       for (k = 0; k < nk; ++k)
         tmp[i][j] += alpha * A[i][k] * B[k][j];
-    }
-  for (i = 0; i < ni; i++)
-    for (j = 0; j < nl; j++) {
+  });
+  RAJA::forallN <Independent2DTiled> (IDir, LDir, [=] (int i, int j) {
       D[i][j] *= beta;
       for (k = 0; k < nj; ++k)
         D[i][j] += tmp[i][k] * C[k][j];
-    }
+  });
 #pragma endscop
 }
 
