@@ -8,6 +8,12 @@
 /* Include benchmark-specific header. */
 #include "3mm.hpp"
 
+RAJA::RangeSegment IDir (0, NI);
+RAJA::RangeSegment JDir (0, NJ);
+RAJA::RangeSegment KDir (0, NK);
+RAJA::RangeSegment LDir (0, NL);
+RAJA::RangeSegment MDir (0, NM);
+
 
 static void init_array(int ni,
                        int nj,
@@ -19,18 +25,19 @@ static void init_array(int ni,
                        double C[NJ][NM],
                        double D[NM][NL]) {
   int i, j;
-  for (i = 0; i < ni; i++)
-    for (j = 0; j < nk; j++)
-      A[i][j] = (double)((i * j + 1) % ni) / (5 * ni);
-  for (i = 0; i < nk; i++)
-    for (j = 0; j < nj; j++)
-      B[i][j] = (double)((i * (j + 1) + 2) % nj) / (5 * nj);
-  for (i = 0; i < nj; i++)
-    for (j = 0; j < nm; j++)
-      C[i][j] = (double)(i * (j + 3) % nl) / (5 * nl);
-  for (i = 0; i < nm; i++)
-    for (j = 0; j < nl; j++)
-      D[i][j] = (double)((i * (j + 2) + 2) % nk) / (5 * nk);
+
+  RAJA::forallN <Independent2D> (IDir, KDir, [=] (int i, int j) {
+    A[i][j] = (double)((i * j + 1) % ni) / (5 * ni);
+  });
+  RAJA::forallN <Independent2D> (KDir, JDir, [=] (int i, int j) {
+    B[i][j] = (double)((i * (j + 1) + 2) % nj) / (5 * nj);
+  });
+  RAJA::forallN <Independent2D> (JDir, MDir, [=] (int i, int j) {
+    C[i][j] = (double)(i * (j + 3) % nl) / (5 * nl);
+  });
+  RAJA::forallN <Independent2D> (MDir, LDir, [=] (int i, int j) {
+    D[i][j] = (double)((i * (j + 2) + 2) % nk) / (5 * nk);
+  });
 }
 
 static void print_array(int ni, int nl, double G[NI][NL]) {
@@ -58,26 +65,25 @@ static void kernel_3mm(int ni,
                        double C[NJ][NM],
                        double D[NM][NL],
                        double G[NI][NL]) {
-  int i, j, k;
+
 #pragma scop
-  for (i = 0; i < ni; i++)
-    for (j = 0; j < nj; j++) {
-      E[i][j] = 0.0;
-      for (k = 0; k < nk; ++k)
-        E[i][j] += A[i][k] * B[k][j];
-    }
-  for (i = 0; i < nj; i++)
-    for (j = 0; j < nl; j++) {
-      F[i][j] = 0.0;
-      for (k = 0; k < nm; ++k)
-        F[i][j] += C[i][k] * D[k][j];
-    }
-  for (i = 0; i < ni; i++)
-    for (j = 0; j < nl; j++) {
-      G[i][j] = 0.0;
-      for (k = 0; k < nj; ++k)
-        G[i][j] += E[i][k] * F[k][j];
-    }
+  using ExecPolicy = Independent2DTiled<32,16>;
+
+  RAJA::forallN <ExecPolicy> (IDir, JDir, [=] (int i, int j) {
+    E[i][j] = 0.0;
+    for (int k = 0; k < nk; ++k)
+      E[i][j] += A[i][k] * B[k][j];
+  });
+  RAJA::forallN <ExecPolicy> (JDir, LDir, [=] (int i, int j) {
+    F[i][j] = 0.0;
+    for (int k = 0; k < nm; ++k)
+      F[i][j] += C[i][k] * D[k][j];
+  });
+  RAJA::forallN <ExecPolicy> (IDir, LDir, [=] (int i, int j) {
+    G[i][j] = 0.0;
+    for (int k = 0; k < nj; ++k)
+      G[i][j] += E[i][k] * F[k][j];
+  });
 #pragma endscop
 }
 

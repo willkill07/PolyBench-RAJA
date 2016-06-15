@@ -1,4 +1,5 @@
--std=c++11
--I./RAJA/include
 -I./src/C
 -I./src/RAJA
+-I./build/include
+-I./RAJA/include
+-std=c++11

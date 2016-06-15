@@ -13,30 +13,6 @@ RAJA::RangeSegment JDir (0, NJ);
 RAJA::RangeSegment KDir (0, NK);
 RAJA::RangeSegment LDir (0, NL);
 
-using Independent2D = RAJA::NestedPolicy <
-  RAJA::ExecList <
-    RAJA::omp_collapse_nowait_exec,
-    RAJA::omp_collapse_nowait_exec
-  >,
-  RAJA::OMP_Parallel<RAJA::Execute>
->;
-
-using Independent2DTiled = RAJA::NestedPolicy <
-  RAJA::ExecList <
-    RAJA::omp_collapse_nowait_exec,
-    RAJA::omp_collapse_nowait_exec
-  >,
-  RAJA::OMP_Parallel<
-    RAJA::Tile<
-      RAJA::TileList<
-        RAJA::tile_fixed<64>,
-        RAJA::tile_fixed<64>
-      >,
-      RAJA::Permute <RAJA::PERM_IJ>
-    >
-  >
->;
-
 static void init_array(int ni,
                        int nj,
                        int nk,
@@ -47,7 +23,6 @@ static void init_array(int ni,
                        double B[NK][NJ],
                        double C[NJ][NL],
                        double D[NI][NL]) {
-  int i, j;
   *alpha = 1.5;
   *beta = 1.2;
 
@@ -89,16 +64,16 @@ static void kernel_2mm(int ni,
                        double B[NK][NJ],
                        double C[NJ][NL],
                        double D[NI][NL]) {
-  int i, j, k;
 #pragma scop
-  RAJA::forallN <Independent2DTiled> (IDir, JDir, [=] (int i, int j) {
+  using ExecPolicy = Independent2DTiled<32,16>;
+  RAJA::forallN <ExecPolicy> (IDir, JDir, [=] (int i, int j) {
       tmp[i][j] = 0.0;
-      for (k = 0; k < nk; ++k)
+      for (int k = 0; k < nk; ++k)
         tmp[i][j] += alpha * A[i][k] * B[k][j];
   });
-  RAJA::forallN <Independent2DTiled> (IDir, LDir, [=] (int i, int j) {
+  RAJA::forallN <ExecPolicy> (IDir, LDir, [=] (int i, int j) {
       D[i][j] *= beta;
-      for (k = 0; k < nj; ++k)
+      for (int k = 0; k < nj; ++k)
         D[i][j] += tmp[i][k] * C[k][j];
   });
 #pragma endscop

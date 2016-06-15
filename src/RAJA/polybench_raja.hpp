@@ -23,6 +23,31 @@
 #define RAJA_ENABLE_NESTED 1
 #include <RAJA/RAJA.hxx>
 
+using Independent2D = typename RAJA::NestedPolicy<
+  RAJA::ExecList<
+    RAJA::omp_collapse_nowait_exec,
+    RAJA::omp_collapse_nowait_exec
+  >,
+  RAJA::OMP_Parallel<RAJA::Execute>
+>;
+
+template <size_t Loop1, size_t Loop2, typename Permutation = RAJA::PERM_IJ>
+using Independent2DTiled = typename RAJA::NestedPolicy<
+  RAJA::ExecList<
+    RAJA::omp_collapse_nowait_exec,
+    RAJA::omp_collapse_nowait_exec
+  >,
+  RAJA::OMP_Parallel<
+    RAJA::Tile<
+      RAJA::TileList<
+        RAJA::tile_fixed<Loop1>,
+        RAJA::tile_fixed<Loop2>
+      >,
+      RAJA::Permute<Permutation>
+    >
+  >
+>;
+
 extern double polybench_program_total_flops;
 extern void polybench_timer_start();
 extern void polybench_timer_stop();
