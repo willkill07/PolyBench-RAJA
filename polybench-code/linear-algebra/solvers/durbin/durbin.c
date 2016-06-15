@@ -11,113 +11,82 @@
 /* Include benchmark-specific header. */
 #include "durbin.h"
 
-
-/* Array initialization. */
-static
-void init_array (int n,
-		 DATA_TYPE POLYBENCH_1D(r,N,n))
-{
+static void init_array(int n, double r[2000]) {
   int i, j;
 
-  for (i = 0; i < n; i++)
-    {
-      r[i] = (n+1-i);
-    }
+  for (i = 0; i < n; i++) {
+    r[i] = (n + 1 - i);
+  }
 }
 
-
-/* DCE code. Must scan the entire live-out data.
-   Can be used also to check the correctness of the output. */
-static
-void print_array(int n,
-		 DATA_TYPE POLYBENCH_1D(y,N,n))
+static void print_array(int n, double y[2000])
 
 {
   int i;
 
-  POLYBENCH_DUMP_START;
-  POLYBENCH_DUMP_BEGIN("y");
+  fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
+  fprintf(stderr, "begin dump: %s", "y");
   for (i = 0; i < n; i++) {
-    if (i % 20 == 0) fprintf (POLYBENCH_DUMP_TARGET, "\n");
-    fprintf (POLYBENCH_DUMP_TARGET, DATA_PRINTF_MODIFIER, y[i]);
+    if (i % 20 == 0) fprintf(stderr, "\n");
+    fprintf(stderr, "%0.2lf ", y[i]);
   }
-  POLYBENCH_DUMP_END("y");
-  POLYBENCH_DUMP_FINISH;
+  fprintf(stderr, "\nend   dump: %s\n", "y");
+  fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
+static void kernel_durbin(int n, double r[2000], double y[2000]) {
+  double z[2000];
+  double alpha;
+  double beta;
+  double sum;
 
-/* Main computational kernel. The whole function will be timed,
-   including the call and return. */
-static
-void kernel_durbin(int n,
-		   DATA_TYPE POLYBENCH_1D(r,N,n),
-		   DATA_TYPE POLYBENCH_1D(y,N,n))
-{
- DATA_TYPE z[N];
- DATA_TYPE alpha;
- DATA_TYPE beta;
- DATA_TYPE sum;
-
- int i,k;
+  int i, k;
 
 #pragma scop
- y[0] = -r[0];
- beta = SCALAR_VAL(1.0);
- alpha = -r[0];
+  y[0] = -r[0];
+  beta = 1.0;
+  alpha = -r[0];
 
- for (k = 1; k < _PB_N; k++) {
-   beta = (1-alpha*alpha)*beta;
-   sum = SCALAR_VAL(0.0);
-   for (i=0; i<k; i++) {
-      sum += r[k-i-1]*y[i];
-   }
-   alpha = - (r[k] + sum)/beta;
+  for (k = 1; k < n; k++) {
+    beta = (1 - alpha * alpha) * beta;
+    sum = 0.0;
+    for (i = 0; i < k; i++) {
+      sum += r[k - i - 1] * y[i];
+    }
+    alpha = -(r[k] + sum) / beta;
 
-   for (i=0; i<k; i++) {
-      z[i] = y[i] + alpha*y[k-i-1];
-   }
-   for (i=0; i<k; i++) {
-     y[i] = z[i];
-   }
-   y[k] = alpha;
- }
+    for (i = 0; i < k; i++) {
+      z[i] = y[i] + alpha * y[k - i - 1];
+    }
+    for (i = 0; i < k; i++) {
+      y[i] = z[i];
+    }
+    y[k] = alpha;
+  }
 #pragma endscop
-
 }
 
+int main(int argc, char** argv) {
+  int n = 2000;
 
-int main(int argc, char** argv)
-{
-  /* Retrieve problem size. */
-  int n = N;
+  double(*r)[2000];
+  r = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
+  double(*y)[2000];
+  y = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
 
-  /* Variable declaration/allocation. */
-  POLYBENCH_1D_ARRAY_DECL(r, DATA_TYPE, N, n);
-  POLYBENCH_1D_ARRAY_DECL(y, DATA_TYPE, N, n);
+  init_array(n, *r);
 
+  polybench_timer_start();
 
-  /* Initialize array(s). */
-  init_array (n, POLYBENCH_ARRAY(r));
+  kernel_durbin(n, *r, *y);
 
-  /* Start timer. */
-  polybench_start_instruments;
+  polybench_timer_stop();
+  polybench_timer_print();
 
-  /* Run kernel. */
-  kernel_durbin (n,
-		 POLYBENCH_ARRAY(r),
-		 POLYBENCH_ARRAY(y));
+  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *y);
 
-  /* Stop and print timer. */
-  polybench_stop_instruments;
-  polybench_print_instruments;
-
-  /* Prevent dead-code elimination. All live-out data must be printed
-     by the function call in argument. */
-  polybench_prevent_dce(print_array(n, POLYBENCH_ARRAY(y)));
-
-  /* Be clean. */
-  POLYBENCH_FREE_ARRAY(r);
-  POLYBENCH_FREE_ARRAY(y);
+  free((void*)r);
+  free((void*)y);
 
   return 0;
 }

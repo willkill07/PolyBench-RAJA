@@ -11,101 +11,76 @@
 /* Include benchmark-specific header. */
 #include "trisolv.h"
 
-
-/* Array initialization. */
-static
-void init_array(int n,
-		DATA_TYPE POLYBENCH_2D(L,N,N,n,n),
-		DATA_TYPE POLYBENCH_1D(x,N,n),
-		DATA_TYPE POLYBENCH_1D(b,N,n))
-{
+static void init_array(int n,
+                       double L[2000][2000],
+                       double x[2000],
+                       double b[2000]) {
   int i, j;
 
-  for (i = 0; i < n; i++)
-    {
-      x[i] = - 999;
-      b[i] =  i ;
-      for (j = 0; j <= i; j++)
-	L[i][j] = (DATA_TYPE) (i+n-j+1)*2/n;
-    }
+  for (i = 0; i < n; i++) {
+    x[i] = -999;
+    b[i] = i;
+    for (j = 0; j <= i; j++)
+      L[i][j] = (double)(i + n - j + 1) * 2 / n;
+  }
 }
 
-
-/* DCE code. Must scan the entire live-out data.
-   Can be used also to check the correctness of the output. */
-static
-void print_array(int n,
-		 DATA_TYPE POLYBENCH_1D(x,N,n))
+static void print_array(int n, double x[2000])
 
 {
   int i;
 
-  POLYBENCH_DUMP_START;
-  POLYBENCH_DUMP_BEGIN("x");
+  fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
+  fprintf(stderr, "begin dump: %s", "x");
   for (i = 0; i < n; i++) {
-    fprintf (POLYBENCH_DUMP_TARGET, DATA_PRINTF_MODIFIER, x[i]);
-    if (i % 20 == 0) fprintf (POLYBENCH_DUMP_TARGET, "\n");
+    fprintf(stderr, "%0.2lf ", x[i]);
+    if (i % 20 == 0) fprintf(stderr, "\n");
   }
-  POLYBENCH_DUMP_END("x");
-  POLYBENCH_DUMP_FINISH;
+  fprintf(stderr, "\nend   dump: %s\n", "x");
+  fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-
-/* Main computational kernel. The whole function will be timed,
-   including the call and return. */
-static
-void kernel_trisolv(int n,
-		    DATA_TYPE POLYBENCH_2D(L,N,N,n,n),
-		    DATA_TYPE POLYBENCH_1D(x,N,n),
-		    DATA_TYPE POLYBENCH_1D(b,N,n))
-{
+static void kernel_trisolv(int n,
+                           double L[2000][2000],
+                           double x[2000],
+                           double b[2000]) {
   int i, j;
 
 #pragma scop
-  for (i = 0; i < _PB_N; i++)
-    {
-      x[i] = b[i];
-      for (j = 0; j <i; j++)
-        x[i] -= L[i][j] * x[j];
-      x[i] = x[i] / L[i][i];
-    }
+  for (i = 0; i < n; i++) {
+    x[i] = b[i];
+    for (j = 0; j < i; j++)
+      x[i] -= L[i][j] * x[j];
+    x[i] = x[i] / L[i][i];
+  }
 #pragma endscop
-
 }
 
+int main(int argc, char** argv) {
+  int n = 2000;
 
-int main(int argc, char** argv)
-{
-  /* Retrieve problem size. */
-  int n = N;
+  double(*L)[2000][2000];
+  L = (double(*)[2000][2000])polybench_alloc_data((2000) * (2000),
+                                                  sizeof(double));
+  double(*x)[2000];
+  x = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
+  double(*b)[2000];
+  b = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
 
-  /* Variable declaration/allocation. */
-  POLYBENCH_2D_ARRAY_DECL(L, DATA_TYPE, N, N, n, n);
-  POLYBENCH_1D_ARRAY_DECL(x, DATA_TYPE, N, n);
-  POLYBENCH_1D_ARRAY_DECL(b, DATA_TYPE, N, n);
+  init_array(n, *L, *x, *b);
 
+  polybench_timer_start();
 
-  /* Initialize array(s). */
-  init_array (n, POLYBENCH_ARRAY(L), POLYBENCH_ARRAY(x), POLYBENCH_ARRAY(b));
+  kernel_trisolv(n, *L, *x, *b);
 
-  /* Start timer. */
-  polybench_start_instruments;
+  polybench_timer_stop();
+  polybench_timer_print();
 
-  /* Run kernel. */
-  kernel_trisolv (n, POLYBENCH_ARRAY(L), POLYBENCH_ARRAY(x), POLYBENCH_ARRAY(b));
+  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *x);
 
-  /* Stop and print timer. */
-  polybench_stop_instruments;
-  polybench_print_instruments;
-
-  /* Prevent dead-code elimination. All live-out data must be printed
-     by the function call in argument. */
-  polybench_prevent_dce(print_array(n, POLYBENCH_ARRAY(x)));
-
-  /* Be clean. */
-  POLYBENCH_FREE_ARRAY(L);
-  POLYBENCH_FREE_ARRAY(x);
-  POLYBENCH_FREE_ARRAY(b);
+  free((void*)L);
+  free((void*)x);
+  free((void*)b);
 
   return 0;
 }

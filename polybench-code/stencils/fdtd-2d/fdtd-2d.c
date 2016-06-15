@@ -11,151 +11,122 @@
 /* Include benchmark-specific header. */
 #include "fdtd-2d.h"
 
-
-/* Array initialization. */
-static
-void init_array (int tmax,
-		 int nx,
-		 int ny,
-		 DATA_TYPE POLYBENCH_2D(ex,NX,NY,nx,ny),
-		 DATA_TYPE POLYBENCH_2D(ey,NX,NY,nx,ny),
-		 DATA_TYPE POLYBENCH_2D(hz,NX,NY,nx,ny),
-		 DATA_TYPE POLYBENCH_1D(_fict_,TMAX,tmax))
-{
+static void init_array(int tmax,
+                       int nx,
+                       int ny,
+                       double ex[1000][1200],
+                       double ey[1000][1200],
+                       double hz[1000][1200],
+                       double _fict_[500]) {
   int i, j;
 
   for (i = 0; i < tmax; i++)
-    _fict_[i] = (DATA_TYPE) i;
+    _fict_[i] = (double)i;
   for (i = 0; i < nx; i++)
-    for (j = 0; j < ny; j++)
-      {
-	ex[i][j] = ((DATA_TYPE) i*(j+1)) / nx;
-	ey[i][j] = ((DATA_TYPE) i*(j+2)) / ny;
-	hz[i][j] = ((DATA_TYPE) i*(j+3)) / nx;
-      }
+    for (j = 0; j < ny; j++) {
+      ex[i][j] = ((double)i * (j + 1)) / nx;
+      ey[i][j] = ((double)i * (j + 2)) / ny;
+      hz[i][j] = ((double)i * (j + 3)) / nx;
+    }
 }
 
-
-/* DCE code. Must scan the entire live-out data.
-   Can be used also to check the correctness of the output. */
-static
-void print_array(int nx,
-		 int ny,
-		 DATA_TYPE POLYBENCH_2D(ex,NX,NY,nx,ny),
-		 DATA_TYPE POLYBENCH_2D(ey,NX,NY,nx,ny),
-		 DATA_TYPE POLYBENCH_2D(hz,NX,NY,nx,ny))
-{
+static void print_array(int nx,
+                        int ny,
+                        double ex[1000][1200],
+                        double ey[1000][1200],
+                        double hz[1000][1200]) {
   int i, j;
 
-  POLYBENCH_DUMP_START;
-  POLYBENCH_DUMP_BEGIN("ex");
+  fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
+  fprintf(stderr, "begin dump: %s", "ex");
   for (i = 0; i < nx; i++)
     for (j = 0; j < ny; j++) {
-      if ((i * nx + j) % 20 == 0) fprintf(POLYBENCH_DUMP_TARGET, "\n");
-      fprintf(POLYBENCH_DUMP_TARGET, DATA_PRINTF_MODIFIER, ex[i][j]);
+      if ((i * nx + j) % 20 == 0) fprintf(stderr, "\n");
+      fprintf(stderr, "%0.2lf ", ex[i][j]);
     }
-  POLYBENCH_DUMP_END("ex");
-  POLYBENCH_DUMP_FINISH;
+  fprintf(stderr, "\nend   dump: %s\n", "ex");
+  fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 
-  POLYBENCH_DUMP_BEGIN("ey");
+  fprintf(stderr, "begin dump: %s", "ey");
   for (i = 0; i < nx; i++)
     for (j = 0; j < ny; j++) {
-      if ((i * nx + j) % 20 == 0) fprintf(POLYBENCH_DUMP_TARGET, "\n");
-      fprintf(POLYBENCH_DUMP_TARGET, DATA_PRINTF_MODIFIER, ey[i][j]);
+      if ((i * nx + j) % 20 == 0) fprintf(stderr, "\n");
+      fprintf(stderr, "%0.2lf ", ey[i][j]);
     }
-  POLYBENCH_DUMP_END("ey");
+  fprintf(stderr, "\nend   dump: %s\n", "ey");
 
-  POLYBENCH_DUMP_BEGIN("hz");
+  fprintf(stderr, "begin dump: %s", "hz");
   for (i = 0; i < nx; i++)
     for (j = 0; j < ny; j++) {
-      if ((i * nx + j) % 20 == 0) fprintf(POLYBENCH_DUMP_TARGET, "\n");
-      fprintf(POLYBENCH_DUMP_TARGET, DATA_PRINTF_MODIFIER, hz[i][j]);
+      if ((i * nx + j) % 20 == 0) fprintf(stderr, "\n");
+      fprintf(stderr, "%0.2lf ", hz[i][j]);
     }
-  POLYBENCH_DUMP_END("hz");
+  fprintf(stderr, "\nend   dump: %s\n", "hz");
 }
 
-
-/* Main computational kernel. The whole function will be timed,
-   including the call and return. */
-static
-void kernel_fdtd_2d(int tmax,
-		    int nx,
-		    int ny,
-		    DATA_TYPE POLYBENCH_2D(ex,NX,NY,nx,ny),
-		    DATA_TYPE POLYBENCH_2D(ey,NX,NY,nx,ny),
-		    DATA_TYPE POLYBENCH_2D(hz,NX,NY,nx,ny),
-		    DATA_TYPE POLYBENCH_1D(_fict_,TMAX,tmax))
-{
+static void kernel_fdtd_2d(int tmax,
+                           int nx,
+                           int ny,
+                           double ex[1000][1200],
+                           double ey[1000][1200],
+                           double hz[1000][1200],
+                           double _fict_[500]) {
   int t, i, j;
 
 #pragma scop
 
-  for(t = 0; t < _PB_TMAX; t++)
-    {
-      for (j = 0; j < _PB_NY; j++)
-	ey[0][j] = _fict_[t];
-      for (i = 1; i < _PB_NX; i++)
-	for (j = 0; j < _PB_NY; j++)
-	  ey[i][j] = ey[i][j] - SCALAR_VAL(0.5)*(hz[i][j]-hz[i-1][j]);
-      for (i = 0; i < _PB_NX; i++)
-	for (j = 1; j < _PB_NY; j++)
-	  ex[i][j] = ex[i][j] - SCALAR_VAL(0.5)*(hz[i][j]-hz[i][j-1]);
-      for (i = 0; i < _PB_NX - 1; i++)
-	for (j = 0; j < _PB_NY - 1; j++)
-	  hz[i][j] = hz[i][j] - SCALAR_VAL(0.7)*  (ex[i][j+1] - ex[i][j] +
-				       ey[i+1][j] - ey[i][j]);
-    }
+  for (t = 0; t < tmax; t++) {
+    for (j = 0; j < ny; j++)
+      ey[0][j] = _fict_[t];
+    for (i = 1; i < nx; i++)
+      for (j = 0; j < ny; j++)
+        ey[i][j] = ey[i][j] - 0.5 * (hz[i][j] - hz[i - 1][j]);
+    for (i = 0; i < nx; i++)
+      for (j = 1; j < ny; j++)
+        ex[i][j] = ex[i][j] - 0.5 * (hz[i][j] - hz[i][j - 1]);
+    for (i = 0; i < nx - 1; i++)
+      for (j = 0; j < ny - 1; j++)
+        hz[i][j] = hz[i][j]
+                   - 0.7 * (ex[i][j + 1] - ex[i][j] + ey[i + 1][j] - ey[i][j]);
+  }
 
 #pragma endscop
 }
 
+int main(int argc, char** argv) {
+  int tmax = 500;
+  int nx = 1000;
+  int ny = 1200;
 
-int main(int argc, char** argv)
-{
-  /* Retrieve problem size. */
-  int tmax = TMAX;
-  int nx = NX;
-  int ny = NY;
+  double(*ex)[1000][1200];
+  ex = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
+                                                   sizeof(double));
+  double(*ey)[1000][1200];
+  ey = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
+                                                   sizeof(double));
+  double(*hz)[1000][1200];
+  hz = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
+                                                   sizeof(double));
+  double(*_fict_)[500];
+  _fict_ = (double(*)[500])polybench_alloc_data(500, sizeof(double));
 
-  /* Variable declaration/allocation. */
-  POLYBENCH_2D_ARRAY_DECL(ex,DATA_TYPE,NX,NY,nx,ny);
-  POLYBENCH_2D_ARRAY_DECL(ey,DATA_TYPE,NX,NY,nx,ny);
-  POLYBENCH_2D_ARRAY_DECL(hz,DATA_TYPE,NX,NY,nx,ny);
-  POLYBENCH_1D_ARRAY_DECL(_fict_,DATA_TYPE,TMAX,tmax);
+  init_array(tmax, nx, ny, *ex, *ey, *hz, *_fict_);
 
-  /* Initialize array(s). */
-  init_array (tmax, nx, ny,
-	      POLYBENCH_ARRAY(ex),
-	      POLYBENCH_ARRAY(ey),
-	      POLYBENCH_ARRAY(hz),
-	      POLYBENCH_ARRAY(_fict_));
+  polybench_timer_start();
 
-  /* Start timer. */
-  polybench_start_instruments;
+  kernel_fdtd_2d(tmax, nx, ny, *ex, *ey, *hz, *_fict_);
 
-  /* Run kernel. */
-  kernel_fdtd_2d (tmax, nx, ny,
-		  POLYBENCH_ARRAY(ex),
-		  POLYBENCH_ARRAY(ey),
-		  POLYBENCH_ARRAY(hz),
-		  POLYBENCH_ARRAY(_fict_));
+  polybench_timer_stop();
+  polybench_timer_print();
+
+  if (argc > 42 && !strcmp(argv[0], ""))
+    print_array(nx, ny, *ex, *ey, *hz)
 
 
-  /* Stop and print timer. */
-  polybench_stop_instruments;
-  polybench_print_instruments;
-
-  /* Prevent dead-code elimination. All live-out data must be printed
-     by the function call in argument. */
-  polybench_prevent_dce(print_array(nx, ny, POLYBENCH_ARRAY(ex),
-				    POLYBENCH_ARRAY(ey),
-				    POLYBENCH_ARRAY(hz)));
-
-  /* Be clean. */
-  POLYBENCH_FREE_ARRAY(ex);
-  POLYBENCH_FREE_ARRAY(ey);
-  POLYBENCH_FREE_ARRAY(hz);
-  POLYBENCH_FREE_ARRAY(_fict_);
+  free((void*)ex);
+  free((void*)ey);
+  free((void*)hz);
+  free((void*)_fict_);
 
   return 0;
 }

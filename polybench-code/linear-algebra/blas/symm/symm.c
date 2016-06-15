@@ -11,132 +11,97 @@
 /* Include benchmark-specific header. */
 #include "symm.h"
 
-
-/* Array initialization. */
-static
-void init_array(int m, int n,
-		DATA_TYPE *alpha,
-		DATA_TYPE *beta,
-		DATA_TYPE POLYBENCH_2D(C,M,N,m,n),
-		DATA_TYPE POLYBENCH_2D(A,M,M,m,m),
-		DATA_TYPE POLYBENCH_2D(B,M,N,m,n))
-{
+static void init_array(int m,
+                       int n,
+                       double *alpha,
+                       double *beta,
+                       double C[1000][1200],
+                       double A[1000][1000],
+                       double B[1000][1200]) {
   int i, j;
 
   *alpha = 1.5;
   *beta = 1.2;
   for (i = 0; i < m; i++)
     for (j = 0; j < n; j++) {
-      C[i][j] = (DATA_TYPE) ((i+j) % 100) / m;
-      B[i][j] = (DATA_TYPE) ((n+i-j) % 100) / m;
+      C[i][j] = (double)((i + j) % 100) / m;
+      B[i][j] = (double)((n + i - j) % 100) / m;
     }
   for (i = 0; i < m; i++) {
-    for (j = 0; j <=i; j++)
-      A[i][j] = (DATA_TYPE) ((i+j) % 100) / m;
-    for (j = i+1; j < m; j++)
-      A[i][j] = -999; //regions of arrays that should not be used
+    for (j = 0; j <= i; j++)
+      A[i][j] = (double)((i + j) % 100) / m;
+    for (j = i + 1; j < m; j++)
+      A[i][j] = -999;
   }
 }
 
-
-/* DCE code. Must scan the entire live-out data.
-   Can be used also to check the correctness of the output. */
-static
-void print_array(int m, int n,
-		 DATA_TYPE POLYBENCH_2D(C,M,N,m,n))
-{
+static void print_array(int m, int n, double C[1000][1200]) {
   int i, j;
 
-  POLYBENCH_DUMP_START;
-  POLYBENCH_DUMP_BEGIN("C");
+  fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
+  fprintf(stderr, "begin dump: %s", "C");
   for (i = 0; i < m; i++)
     for (j = 0; j < n; j++) {
-	if ((i * m + j) % 20 == 0) fprintf (POLYBENCH_DUMP_TARGET, "\n");
-	fprintf (POLYBENCH_DUMP_TARGET, DATA_PRINTF_MODIFIER, C[i][j]);
+      if ((i * m + j) % 20 == 0) fprintf(stderr, "\n");
+      fprintf(stderr, "%0.2lf ", C[i][j]);
     }
-  POLYBENCH_DUMP_END("C");
-  POLYBENCH_DUMP_FINISH;
+  fprintf(stderr, "\nend   dump: %s\n", "C");
+  fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-
-/* Main computational kernel. The whole function will be timed,
-   including the call and return. */
-static
-void kernel_symm(int m, int n,
-		 DATA_TYPE alpha,
-		 DATA_TYPE beta,
-		 DATA_TYPE POLYBENCH_2D(C,M,N,m,n),
-		 DATA_TYPE POLYBENCH_2D(A,M,M,m,m),
-		 DATA_TYPE POLYBENCH_2D(B,M,N,m,n))
-{
+static void kernel_symm(int m,
+                        int n,
+                        double alpha,
+                        double beta,
+                        double C[1000][1200],
+                        double A[1000][1000],
+                        double B[1000][1200]) {
   int i, j, k;
-  DATA_TYPE temp2;
-
-//BLAS PARAMS
-//SIDE = 'L'
-//UPLO = 'L'
-// =>  Form  C := alpha*A*B + beta*C
-// A is MxM
-// B is MxN
-// C is MxN
-//note that due to Fortran array layout, the code below more closely resembles upper triangular case in BLAS
+  double temp2;
+# 75 "symm.c"
 #pragma scop
-   for (i = 0; i < _PB_M; i++)
-      for (j = 0; j < _PB_N; j++ )
-      {
-        temp2 = 0;
-        for (k = 0; k < i; k++) {
-           C[k][j] += alpha*B[i][j] * A[i][k];
-           temp2 += B[k][j] * A[i][k];
-        }
-        C[i][j] = beta * C[i][j] + alpha*B[i][j] * A[i][i] + alpha * temp2;
-     }
+  for (i = 0; i < m; i++)
+    for (j = 0; j < n; j++) {
+      temp2 = 0;
+      for (k = 0; k < i; k++) {
+        C[k][j] += alpha * B[i][j] * A[i][k];
+        temp2 += B[k][j] * A[i][k];
+      }
+      C[i][j] = beta * C[i][j] + alpha * B[i][j] * A[i][i] + alpha * temp2;
+    }
 #pragma endscop
-
 }
 
+int main(int argc, char **argv) {
+  int m = 1000;
+  int n = 1200;
 
-int main(int argc, char** argv)
-{
-  /* Retrieve problem size. */
-  int m = M;
-  int n = N;
+  double alpha;
+  double beta;
+  double(*C)[1000][1200];
+  C = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
+                                                  sizeof(double));
+  double(*A)[1000][1000];
+  A = (double(*)[1000][1000])polybench_alloc_data((1000) * (1000),
+                                                  sizeof(double));
+  double(*B)[1000][1200];
+  B = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
+                                                  sizeof(double));
 
-  /* Variable declaration/allocation. */
-  DATA_TYPE alpha;
-  DATA_TYPE beta;
-  POLYBENCH_2D_ARRAY_DECL(C,DATA_TYPE,M,N,m,n);
-  POLYBENCH_2D_ARRAY_DECL(A,DATA_TYPE,M,M,m,m);
-  POLYBENCH_2D_ARRAY_DECL(B,DATA_TYPE,M,N,m,n);
+  init_array(m, n, &alpha, &beta, *C, *A, *B);
 
-  /* Initialize array(s). */
-  init_array (m, n, &alpha, &beta,
-	      POLYBENCH_ARRAY(C),
-	      POLYBENCH_ARRAY(A),
-	      POLYBENCH_ARRAY(B));
+  polybench_timer_start();
 
-  /* Start timer. */
-  polybench_start_instruments;
+  kernel_symm(m, n, alpha, beta, *C, *A, *B);
 
-  /* Run kernel. */
-  kernel_symm (m, n,
-	       alpha, beta,
-	       POLYBENCH_ARRAY(C),
-	       POLYBENCH_ARRAY(A),
-	       POLYBENCH_ARRAY(B));
+  polybench_timer_stop();
+  polybench_timer_print();
 
-  /* Stop and print timer. */
-  polybench_stop_instruments;
-  polybench_print_instruments;
+  if (argc > 42 && !strcmp(argv[0], "")) print_array(m, n, *C);
 
-  /* Prevent dead-code elimination. All live-out data must be printed
-     by the function call in argument. */
-  polybench_prevent_dce(print_array(m, n, POLYBENCH_ARRAY(C)));
-
-  /* Be clean. */
-  POLYBENCH_FREE_ARRAY(C);
-  POLYBENCH_FREE_ARRAY(A);
-  POLYBENCH_FREE_ARRAY(B);
+  free((void *)C);
+  free((void *)A);
+  free((void *)B);
 
   return 0;
 }
