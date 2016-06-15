@@ -1,4 +1,4 @@
-# PolyBench/C-RAJA 4.2.1
+# PolyBench/C-RAJA 0.1.0
 
 Copyright (c) 2011-2016 the Ohio State University.
 
