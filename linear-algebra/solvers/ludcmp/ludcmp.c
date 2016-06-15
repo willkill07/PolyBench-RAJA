@@ -1,30 +1,25 @@
 /* ludcmp.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "ludcmp.h"
 
 static void init_array(int n,
-                       double A[2000][2000],
-                       double b[2000],
-                       double x[2000],
-                       double y[2000]) {
+                       double A[N][N],
+                       double b[N],
+                       double x[N],
+                       double y[N]) {
   int i, j;
   double fn = (double)n;
-
   for (i = 0; i < n; i++) {
     x[i] = 0;
     y[i] = 0;
     b[i] = (i + 1) / fn / 2.0 + 4;
   }
-
   for (i = 0; i < n; i++) {
     for (j = 0; j <= i; j++)
       A[i][j] = (double)(-j % n) / n + 1;
@@ -33,11 +28,9 @@ static void init_array(int n,
     }
     A[i][i] = 1;
   }
-
   int r, s, t;
-  double(*B)[2000][2000];
-  B = (double(*)[2000][2000])polybench_alloc_data((2000) * (2000),
-                                                  sizeof(double));
+  double(*B)[N][N];
+  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
   for (r = 0; r < n; ++r)
     for (s = 0; s < n; ++s)
       (*B)[r][s] = 0;
@@ -51,11 +44,8 @@ static void init_array(int n,
   free((void*)B);
 }
 
-static void print_array(int n, double x[2000])
-
-{
+static void print_array(int n, double x[N]) {
   int i;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "x");
   for (i = 0; i < n; i++) {
@@ -67,14 +57,12 @@ static void print_array(int n, double x[2000])
 }
 
 static void kernel_ludcmp(int n,
-                          double A[2000][2000],
-                          double b[2000],
-                          double x[2000],
-                          double y[2000]) {
+                          double A[N][N],
+                          double b[N],
+                          double x[N],
+                          double y[N]) {
   int i, j, k;
-
   double w;
-
 #pragma scop
   for (i = 0; i < n; i++) {
     for (j = 0; j < i; j++) {
@@ -92,14 +80,12 @@ static void kernel_ludcmp(int n,
       A[i][j] = w;
     }
   }
-
   for (i = 0; i < n; i++) {
     w = b[i];
     for (j = 0; j < i; j++)
       w -= A[i][j] * y[j];
     y[i] = w;
   }
-
   for (i = n - 1; i >= 0; i--) {
     w = y[i];
     for (j = i + 1; j < n; j++)
@@ -110,33 +96,24 @@ static void kernel_ludcmp(int n,
 }
 
 int main(int argc, char** argv) {
-  int n = 2000;
-
-  double(*A)[2000][2000];
-  A = (double(*)[2000][2000])polybench_alloc_data((2000) * (2000),
-                                                  sizeof(double));
-  double(*b)[2000];
-  b = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
-  double(*x)[2000];
-  x = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
-  double(*y)[2000];
-  y = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
-
+  int n = N;
+  double(*A)[N][N];
+  A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
+  double(*b)[N];
+  b = (double(*)[N])polybench_alloc_data(N, sizeof(double));
+  double(*x)[N];
+  x = (double(*)[N])polybench_alloc_data(N, sizeof(double));
+  double(*y)[N];
+  y = (double(*)[N])polybench_alloc_data(N, sizeof(double));
   init_array(n, *A, *b, *x, *y);
-
   polybench_timer_start();
-
   kernel_ludcmp(n, *A, *b, *x, *y);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *x);
-
   free((void*)A);
   free((void*)b);
   free((void*)x);
   free((void*)y);
-
   return 0;
 }

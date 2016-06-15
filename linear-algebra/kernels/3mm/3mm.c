@@ -1,13 +1,10 @@
 /* 3mm.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "3mm.h"
 
@@ -16,12 +13,11 @@ static void init_array(int ni,
                        int nk,
                        int nl,
                        int nm,
-                       double A[800][1000],
-                       double B[1000][900],
-                       double C[900][1200],
-                       double D[1200][1100]) {
+                       double A[NI][NK],
+                       double B[NK][NJ],
+                       double C[NJ][NM],
+                       double D[NM][NL]) {
   int i, j;
-
   for (i = 0; i < ni; i++)
     for (j = 0; j < nk; j++)
       A[i][j] = (double)((i * j + 1) % ni) / (5 * ni);
@@ -36,9 +32,8 @@ static void init_array(int ni,
       D[i][j] = (double)((i * (j + 2) + 2) % nk) / (5 * nk);
 }
 
-static void print_array(int ni, int nl, double G[800][1100]) {
+static void print_array(int ni, int nl, double G[NI][NL]) {
   int i, j;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "G");
   for (i = 0; i < ni; i++)
@@ -55,31 +50,27 @@ static void kernel_3mm(int ni,
                        int nk,
                        int nl,
                        int nm,
-                       double E[800][900],
-                       double A[800][1000],
-                       double B[1000][900],
-                       double F[900][1100],
-                       double C[900][1200],
-                       double D[1200][1100],
-                       double G[800][1100]) {
+                       double E[NI][NJ],
+                       double A[NI][NK],
+                       double B[NK][NJ],
+                       double F[NJ][NL],
+                       double C[NJ][NM],
+                       double D[NM][NL],
+                       double G[NI][NL]) {
   int i, j, k;
-
 #pragma scop
-
   for (i = 0; i < ni; i++)
     for (j = 0; j < nj; j++) {
       E[i][j] = 0.0;
       for (k = 0; k < nk; ++k)
         E[i][j] += A[i][k] * B[k][j];
     }
-
   for (i = 0; i < nj; i++)
     for (j = 0; j < nl; j++) {
       F[i][j] = 0.0;
       for (k = 0; k < nm; ++k)
         F[i][j] += C[i][k] * D[k][j];
     }
-
   for (i = 0; i < ni; i++)
     for (j = 0; j < nl; j++) {
       G[i][j] = 0.0;
@@ -90,44 +81,31 @@ static void kernel_3mm(int ni,
 }
 
 int main(int argc, char** argv) {
-  int ni = 800;
-  int nj = 900;
-  int nk = 1000;
-  int nl = 1100;
-  int nm = 1200;
-
-  double(*E)[800][900];
-  E = (double(*)[800][900])polybench_alloc_data((800) * (900), sizeof(double));
-  double(*A)[800][1000];
-  A = (double(*)[800][1000])polybench_alloc_data((800) * (1000),
-                                                 sizeof(double));
-  double(*B)[1000][900];
-  B = (double(*)[1000][900])polybench_alloc_data((1000) * (900),
-                                                 sizeof(double));
-  double(*F)[900][1100];
-  F = (double(*)[900][1100])polybench_alloc_data((900) * (1100),
-                                                 sizeof(double));
-  double(*C)[900][1200];
-  C = (double(*)[900][1200])polybench_alloc_data((900) * (1200),
-                                                 sizeof(double));
-  double(*D)[1200][1100];
-  D = (double(*)[1200][1100])polybench_alloc_data((1200) * (1100),
-                                                  sizeof(double));
-  double(*G)[800][1100];
-  G = (double(*)[800][1100])polybench_alloc_data((800) * (1100),
-                                                 sizeof(double));
-
+  int ni = NI;
+  int nj = NJ;
+  int nk = NK;
+  int nl = NL;
+  int nm = NM;
+  double(*E)[NI][NJ];
+  E = (double(*)[NI][NJ])polybench_alloc_data((NI) * (NJ), sizeof(double));
+  double(*A)[NI][NK];
+  A = (double(*)[NI][NK])polybench_alloc_data((NI) * (NK), sizeof(double));
+  double(*B)[NK][NJ];
+  B = (double(*)[NK][NJ])polybench_alloc_data((NK) * (NJ), sizeof(double));
+  double(*F)[NJ][NL];
+  F = (double(*)[NJ][NL])polybench_alloc_data((NJ) * (NL), sizeof(double));
+  double(*C)[NJ][NM];
+  C = (double(*)[NJ][NM])polybench_alloc_data((NJ) * (NM), sizeof(double));
+  double(*D)[NM][NL];
+  D = (double(*)[NM][NL])polybench_alloc_data((NM) * (NL), sizeof(double));
+  double(*G)[NI][NL];
+  G = (double(*)[NI][NL])polybench_alloc_data((NI) * (NL), sizeof(double));
   init_array(ni, nj, nk, nl, nm, *A, *B, *C, *D);
-
   polybench_timer_start();
-
   kernel_3mm(ni, nj, nk, nl, nm, *E, *A, *B, *F, *C, *D, *G);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(ni, nl, *G);
-
   free((void*)E);
   free((void*)A);
   free((void*)B);
@@ -135,6 +113,5 @@ int main(int argc, char** argv) {
   free((void*)C);
   free((void*)D);
   free((void*)G);
-
   return 0;
 }

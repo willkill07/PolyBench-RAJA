@@ -1,30 +1,23 @@
 /* jacobi-1d.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "jacobi-1d.h"
 
-static void init_array(int n, double A[2000], double B[2000]) {
+static void init_array(int n, double A[N], double B[N]) {
   int i;
-
   for (i = 0; i < n; i++) {
     A[i] = ((double)i + 2) / n;
     B[i] = ((double)i + 3) / n;
   }
 }
 
-static void print_array(int n, double A[2000])
-
-{
+static void print_array(int n, double A[N]) {
   int i;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "A");
   for (i = 0; i < n; i++) {
@@ -35,12 +28,8 @@ static void print_array(int n, double A[2000])
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-static void kernel_jacobi_1d(int tsteps,
-                             int n,
-                             double A[2000],
-                             double B[2000]) {
+static void kernel_jacobi_1d(int tsteps, int n, double A[N], double B[N]) {
   int t, i;
-
 #pragma scop
   for (t = 0; t < tsteps; t++) {
     for (i = 1; i < n - 1; i++)
@@ -52,27 +41,19 @@ static void kernel_jacobi_1d(int tsteps,
 }
 
 int main(int argc, char** argv) {
-  int n = 2000;
-  int tsteps = 500;
-
-  double(*A)[2000];
-  A = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
-  double(*B)[2000];
-  B = (double(*)[2000])polybench_alloc_data(2000, sizeof(double));
-
+  int n = N;
+  int tsteps = TSTEPS;
+  double(*A)[N];
+  A = (double(*)[N])polybench_alloc_data(N, sizeof(double));
+  double(*B)[N];
+  B = (double(*)[N])polybench_alloc_data(N, sizeof(double));
   init_array(n, *A, *B);
-
   polybench_timer_start();
-
   kernel_jacobi_1d(tsteps, n, *A, *B);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *A);
-
   free((void*)A);
   free((void*)B);
-
   return 0;
 }

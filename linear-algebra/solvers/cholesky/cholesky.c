@@ -1,19 +1,15 @@
 /* cholesky.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "cholesky.h"
 
-static void init_array(int n, double A[2000][2000]) {
+static void init_array(int n, double A[N][N]) {
   int i, j;
-
   for (i = 0; i < n; i++) {
     for (j = 0; j <= i; j++)
       A[i][j] = (double)(-j % n) / n + 1;
@@ -22,11 +18,9 @@ static void init_array(int n, double A[2000][2000]) {
     }
     A[i][i] = 1;
   }
-
   int r, s, t;
-  double(*B)[2000][2000];
-  B = (double(*)[2000][2000])polybench_alloc_data((2000) * (2000),
-                                                  sizeof(double));
+  double(*B)[N][N];
+  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
   for (r = 0; r < n; ++r)
     for (s = 0; s < n; ++s)
       (*B)[r][s] = 0;
@@ -40,11 +34,8 @@ static void init_array(int n, double A[2000][2000]) {
   free((void*)B);
 }
 
-static void print_array(int n, double A[2000][2000])
-
-{
+static void print_array(int n, double A[N][N]) {
   int i, j;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "A");
   for (i = 0; i < n; i++)
@@ -56,9 +47,8 @@ static void print_array(int n, double A[2000][2000])
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-static void kernel_cholesky(int n, double A[2000][2000]) {
+static void kernel_cholesky(int n, double A[N][N]) {
   int i, j, k;
-
 #pragma scop
   for (i = 0; i < n; i++) {
     for (j = 0; j < i; j++) {
@@ -67,7 +57,6 @@ static void kernel_cholesky(int n, double A[2000][2000]) {
       }
       A[i][j] /= A[j][j];
     }
-
     for (k = 0; k < i; k++) {
       A[i][i] -= A[i][k] * A[i][k];
     }
@@ -77,24 +66,15 @@ static void kernel_cholesky(int n, double A[2000][2000]) {
 }
 
 int main(int argc, char** argv) {
-  int n = 2000;
-
-  double(*A)[2000][2000];
-  A = (double(*)[2000][2000])polybench_alloc_data((2000) * (2000),
-                                                  sizeof(double));
-
+  int n = N;
+  double(*A)[N][N];
+  A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
   init_array(n, *A);
-
   polybench_timer_start();
-
   kernel_cholesky(n, *A);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *A);
-
   free((void*)A);
-
   return 0;
 }

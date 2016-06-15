@@ -1,19 +1,15 @@
 /* jacobi-2d.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "jacobi-2d.h"
 
-static void init_array(int n, double A[1300][1300], double B[1300][1300]) {
+static void init_array(int n, double A[N][N], double B[N][N]) {
   int i, j;
-
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++) {
       A[i][j] = ((double)i * (j + 2) + 2) / n;
@@ -21,11 +17,8 @@ static void init_array(int n, double A[1300][1300], double B[1300][1300]) {
     }
 }
 
-static void print_array(int n, double A[1300][1300])
-
-{
+static void print_array(int n, double A[N][N]) {
   int i, j;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "A");
   for (i = 0; i < n; i++)
@@ -39,10 +32,9 @@ static void print_array(int n, double A[1300][1300])
 
 static void kernel_jacobi_2d(int tsteps,
                              int n,
-                             double A[1300][1300],
-                             double B[1300][1300]) {
+                             double A[N][N],
+                             double B[N][N]) {
   int t, i, j;
-
 #pragma scop
   for (t = 0; t < tsteps; t++) {
     for (i = 1; i < n - 1; i++)
@@ -58,29 +50,19 @@ static void kernel_jacobi_2d(int tsteps,
 }
 
 int main(int argc, char** argv) {
-  int n = 1300;
-  int tsteps = 500;
-
-  double(*A)[1300][1300];
-  A = (double(*)[1300][1300])polybench_alloc_data((1300) * (1300),
-                                                  sizeof(double));
-  double(*B)[1300][1300];
-  B = (double(*)[1300][1300])polybench_alloc_data((1300) * (1300),
-                                                  sizeof(double));
-
+  int n = N;
+  int tsteps = TSTEPS;
+  double(*A)[N][N];
+  A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
+  double(*B)[N][N];
+  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
   init_array(n, *A, *B);
-
   polybench_timer_start();
-
   kernel_jacobi_2d(tsteps, n, *A, *B);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *A);
-
   free((void*)A);
   free((void*)B);
-
   return 0;
 }

@@ -1,23 +1,15 @@
 /* bicg.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "bicg.h"
 
-static void init_array(int m,
-                       int n,
-                       double A[2100][1900],
-                       double r[2100],
-                       double p[1900]) {
+static void init_array(int m, int n, double A[N][M], double r[N], double p[M]) {
   int i, j;
-
   for (i = 0; i < m; i++)
     p[i] = (double)(i % m) / m;
   for (i = 0; i < n; i++) {
@@ -27,11 +19,8 @@ static void init_array(int m,
   }
 }
 
-static void print_array(int m, int n, double s[1900], double q[2100])
-
-{
+static void print_array(int m, int n, double s[M], double q[N]) {
   int i;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "s");
   for (i = 0; i < m; i++) {
@@ -50,13 +39,12 @@ static void print_array(int m, int n, double s[1900], double q[2100])
 
 static void kernel_bicg(int m,
                         int n,
-                        double A[2100][1900],
-                        double s[1900],
-                        double q[2100],
-                        double p[1900],
-                        double r[2100]) {
+                        double A[N][M],
+                        double s[M],
+                        double q[N],
+                        double p[M],
+                        double r[N]) {
   int i, j;
-
 #pragma scop
   for (i = 0; i < m; i++)
     s[i] = 0;
@@ -71,37 +59,28 @@ static void kernel_bicg(int m,
 }
 
 int main(int argc, char** argv) {
-  int n = 2100;
-  int m = 1900;
-
-  double(*A)[2100][1900];
-  A = (double(*)[2100][1900])polybench_alloc_data((2100) * (1900),
-                                                  sizeof(double));
-  double(*s)[1900];
-  s = (double(*)[1900])polybench_alloc_data(1900, sizeof(double));
-  double(*q)[2100];
-  q = (double(*)[2100])polybench_alloc_data(2100, sizeof(double));
-  double(*p)[1900];
-  p = (double(*)[1900])polybench_alloc_data(1900, sizeof(double));
-  double(*r)[2100];
-  r = (double(*)[2100])polybench_alloc_data(2100, sizeof(double));
-
+  int n = N;
+  int m = M;
+  double(*A)[N][M];
+  A = (double(*)[N][M])polybench_alloc_data((N) * (M), sizeof(double));
+  double(*s)[M];
+  s = (double(*)[M])polybench_alloc_data(M, sizeof(double));
+  double(*q)[N];
+  q = (double(*)[N])polybench_alloc_data(N, sizeof(double));
+  double(*p)[M];
+  p = (double(*)[M])polybench_alloc_data(M, sizeof(double));
+  double(*r)[N];
+  r = (double(*)[N])polybench_alloc_data(N, sizeof(double));
   init_array(m, n, *A, *r, *p);
-
   polybench_timer_start();
-
   kernel_bicg(m, n, *A, *s, *q, *p, *r);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(m, n, *s, *q);
-
   free((void*)A);
   free((void*)s);
   free((void*)q);
   free((void*)p);
   free((void*)r);
-
   return 0;
 }

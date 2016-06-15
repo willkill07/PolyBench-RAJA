@@ -1,24 +1,20 @@
 /* gesummv.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "gesummv.h"
 
 static void init_array(int n,
                        double *alpha,
                        double *beta,
-                       double A[1300][1300],
-                       double B[1300][1300],
-                       double x[1300]) {
+                       double A[N][N],
+                       double B[N][N],
+                       double x[N]) {
   int i, j;
-
   *alpha = 1.5;
   *beta = 1.2;
   for (i = 0; i < n; i++) {
@@ -30,11 +26,8 @@ static void init_array(int n,
   }
 }
 
-static void print_array(int n, double y[1300])
-
-{
+static void print_array(int n, double y[N]) {
   int i;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "y");
   for (i = 0; i < n; i++) {
@@ -48,13 +41,12 @@ static void print_array(int n, double y[1300])
 static void kernel_gesummv(int n,
                            double alpha,
                            double beta,
-                           double A[1300][1300],
-                           double B[1300][1300],
-                           double tmp[1300],
-                           double x[1300],
-                           double y[1300]) {
+                           double A[N][N],
+                           double B[N][N],
+                           double tmp[N],
+                           double x[N],
+                           double y[N]) {
   int i, j;
-
 #pragma scop
   for (i = 0; i < n; i++) {
     tmp[i] = 0.0;
@@ -69,39 +61,29 @@ static void kernel_gesummv(int n,
 }
 
 int main(int argc, char **argv) {
-  int n = 1300;
-
+  int n = N;
   double alpha;
   double beta;
-  double(*A)[1300][1300];
-  A = (double(*)[1300][1300])polybench_alloc_data((1300) * (1300),
-                                                  sizeof(double));
-  double(*B)[1300][1300];
-  B = (double(*)[1300][1300])polybench_alloc_data((1300) * (1300),
-                                                  sizeof(double));
-  double(*tmp)[1300];
-  tmp = (double(*)[1300])polybench_alloc_data(1300, sizeof(double));
-  double(*x)[1300];
-  x = (double(*)[1300])polybench_alloc_data(1300, sizeof(double));
-  double(*y)[1300];
-  y = (double(*)[1300])polybench_alloc_data(1300, sizeof(double));
-
+  double(*A)[N][N];
+  A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
+  double(*B)[N][N];
+  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
+  double(*tmp)[N];
+  tmp = (double(*)[N])polybench_alloc_data(N, sizeof(double));
+  double(*x)[N];
+  x = (double(*)[N])polybench_alloc_data(N, sizeof(double));
+  double(*y)[N];
+  y = (double(*)[N])polybench_alloc_data(N, sizeof(double));
   init_array(n, &alpha, &beta, *A, *B, *x);
-
   polybench_timer_start();
-
   kernel_gesummv(n, alpha, beta, *A, *B, *tmp, *x, *y);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *y);
-
   free((void *)A);
   free((void *)B);
   free((void *)tmp);
   free((void *)x);
   free((void *)y);
-
   return 0;
 }

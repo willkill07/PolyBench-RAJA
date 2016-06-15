@@ -1,23 +1,19 @@
 /* gramschmidt.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "gramschmidt.h"
 
 static void init_array(int m,
                        int n,
-                       double A[1000][1200],
-                       double R[1200][1200],
-                       double Q[1000][1200]) {
+                       double A[M][N],
+                       double R[N][N],
+                       double Q[M][N]) {
   int i, j;
-
   for (i = 0; i < m; i++)
     for (j = 0; j < n; j++) {
       A[i][j] = (((double)((i * j) % m) / m) * 100) + 10;
@@ -30,11 +26,10 @@ static void init_array(int m,
 
 static void print_array(int m,
                         int n,
-                        double A[1000][1200],
-                        double R[1200][1200],
-                        double Q[1000][1200]) {
+                        double A[M][N],
+                        double R[N][N],
+                        double Q[M][N]) {
   int i, j;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "R");
   for (i = 0; i < n; i++)
@@ -43,7 +38,6 @@ static void print_array(int m,
       fprintf(stderr, "%0.2lf ", R[i][j]);
     }
   fprintf(stderr, "\nend   dump: %s\n", "R");
-
   fprintf(stderr, "begin dump: %s", "Q");
   for (i = 0; i < m; i++)
     for (j = 0; j < n; j++) {
@@ -56,13 +50,11 @@ static void print_array(int m,
 
 static void kernel_gramschmidt(int m,
                                int n,
-                               double A[1000][1200],
-                               double R[1200][1200],
-                               double Q[1000][1200]) {
+                               double A[M][N],
+                               double R[N][N],
+                               double Q[M][N]) {
   int i, j, k;
-
   double nrm;
-
 #pragma scop
   for (k = 0; k < n; k++) {
     nrm = 0.0;
@@ -83,33 +75,22 @@ static void kernel_gramschmidt(int m,
 }
 
 int main(int argc, char** argv) {
-  int m = 1000;
-  int n = 1200;
-
-  double(*A)[1000][1200];
-  A = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
-                                                  sizeof(double));
-  double(*R)[1200][1200];
-  R = (double(*)[1200][1200])polybench_alloc_data((1200) * (1200),
-                                                  sizeof(double));
-  double(*Q)[1000][1200];
-  Q = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
-                                                  sizeof(double));
-
+  int m = M;
+  int n = N;
+  double(*A)[M][N];
+  A = (double(*)[M][N])polybench_alloc_data((M) * (N), sizeof(double));
+  double(*R)[N][N];
+  R = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
+  double(*Q)[M][N];
+  Q = (double(*)[M][N])polybench_alloc_data((M) * (N), sizeof(double));
   init_array(m, n, *A, *R, *Q);
-
   polybench_timer_start();
-
   kernel_gramschmidt(m, n, *A, *R, *Q);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(m, n, *A, *R, *Q);
-
   free((void*)A);
   free((void*)R);
   free((void*)Q);
-
   return 0;
 }

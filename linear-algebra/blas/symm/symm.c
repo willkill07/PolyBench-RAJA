@@ -1,13 +1,10 @@
 /* symm.c: this file is part of PolyBench/C */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-
 /* Include polybench common header. */
 #include <polybench.h>
-
 /* Include benchmark-specific header. */
 #include "symm.h"
 
@@ -15,11 +12,10 @@ static void init_array(int m,
                        int n,
                        double *alpha,
                        double *beta,
-                       double C[1000][1200],
-                       double A[1000][1000],
-                       double B[1000][1200]) {
+                       double C[M][N],
+                       double A[M][M],
+                       double B[M][N]) {
   int i, j;
-
   *alpha = 1.5;
   *beta = 1.2;
   for (i = 0; i < m; i++)
@@ -35,9 +31,8 @@ static void init_array(int m,
   }
 }
 
-static void print_array(int m, int n, double C[1000][1200]) {
+static void print_array(int m, int n, double C[M][N]) {
   int i, j;
-
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "C");
   for (i = 0; i < m; i++)
@@ -53,9 +48,9 @@ static void kernel_symm(int m,
                         int n,
                         double alpha,
                         double beta,
-                        double C[1000][1200],
-                        double A[1000][1000],
-                        double B[1000][1200]) {
+                        double C[M][N],
+                        double A[M][M],
+                        double B[M][N]) {
   int i, j, k;
   double temp2;
 # 75 "symm.c"
@@ -73,35 +68,24 @@ static void kernel_symm(int m,
 }
 
 int main(int argc, char **argv) {
-  int m = 1000;
-  int n = 1200;
-
+  int m = M;
+  int n = N;
   double alpha;
   double beta;
-  double(*C)[1000][1200];
-  C = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
-                                                  sizeof(double));
-  double(*A)[1000][1000];
-  A = (double(*)[1000][1000])polybench_alloc_data((1000) * (1000),
-                                                  sizeof(double));
-  double(*B)[1000][1200];
-  B = (double(*)[1000][1200])polybench_alloc_data((1000) * (1200),
-                                                  sizeof(double));
-
+  double(*C)[M][N];
+  C = (double(*)[M][N])polybench_alloc_data((M) * (N), sizeof(double));
+  double(*A)[M][M];
+  A = (double(*)[M][M])polybench_alloc_data((M) * (M), sizeof(double));
+  double(*B)[M][N];
+  B = (double(*)[M][N])polybench_alloc_data((M) * (N), sizeof(double));
   init_array(m, n, &alpha, &beta, *C, *A, *B);
-
   polybench_timer_start();
-
   kernel_symm(m, n, alpha, beta, *C, *A, *B);
-
   polybench_timer_stop();
   polybench_timer_print();
-
   if (argc > 42 && !strcmp(argv[0], "")) print_array(m, n, *C);
-
   free((void *)C);
   free((void *)A);
   free((void *)B);
-
   return 0;
 }
