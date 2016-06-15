@@ -1,13 +1,16 @@
 # PolyBench/C-RAJA 4.2.1
 
 Copyright (c) 2011-2016 the Ohio State University.
+
 Copyright (c) 2016 Lawrence Livermore National Laboratory
+
 Copyright (c) 2016 University of Delaware
 
 Contact:
-   Louis-Noel Pouchet <pouchet@cse.ohio-state.edu>
-   Tomofumi Yuki <tomofumi.yuki@inria.fr>
-   William Killian <killian4@llnl.gov> <killian@udel.edu>
+
+* Louis-Noel Pouchet <pouchet@cse.ohio-state.edu>
+* Tomofumi Yuki <tomofumi.yuki@inria.fr>
+* William Killian <killian4@llnl.gov> <killian@udel.edu>
 
 PolyBench is a benchmark suite of 30 numerical computations with
 static control flow, extracted from operations in various application
@@ -25,36 +28,37 @@ include:
 
 ## Available benchmarks (PolyBench/C 4.2.1)
 
-Benchmark	Description
-2mm		2 Matrix Multiplications (alpha * A * B * C + beta * D)
-3mm		3 Matrix Multiplications ((A*B)*(C*D))
-adi		Alternating Direction Implicit solver
-atax		Matrix Transpose and Vector Multiplication
-bicg		BiCG Sub Kernel of BiCGStab Linear Solver
-cholesky	Cholesky Decomposition
-correlation	Correlation Computation
-covariance	Covariance Computation
-deriche		Edge detection filter
-doitgen		Multi-resolution analysis kernel (MADNESS)
-durbin		Toeplitz system solver
-fdtd-2d		2-D Finite Different Time Domain Kernel
-gemm		Matrix-multiply C=alpha.A.B+beta.C
-gemver		Vector Multiplication and Matrix Addition
-gesummv		Scalar, Vector and Matrix Multiplication
-gramschmidt	Gram-Schmidt decomposition
-head-3d		Heat equation over 3D data domain
-jacobi-1D	1-D Jacobi stencil computation
-jacobi-2D	2-D Jacobi stencil computation
-lu		LU decomposition
-ludcmp		LU decomposition followed by Forward Substitution
-mvt		Matrix Vector Product and Transpose
-nussinov	Dynamic programming algorithm for sequence alignment
-seidel		2-D Seidel stencil computation
-symm		Symmetric matrix-multiply
-syr2k		Symmetric rank-2k update
-syrk		Symmetric rank-k update
-trisolv		Triangular solver
-trmm		Triangular matrix-multiply
+| Benchmark | Description |
+| --------- | ----------- |
+| 2mm | 2 Matrix Multiplications (alpha * A * B * C + beta * D) |
+| 3mm | 3 Matrix Multiplications ((A*B)*(C*D)) |
+| adi | Alternating Direction Implicit solver |
+| atax | Matrix Transpose and Vector Multiplication |
+| bicg | BiCG Sub Kernel of BiCGStab Linear Solver |
+| cholesky | Cholesky Decomposition |
+| correlation | Correlation Computation |
+| covariance | Covariance Computation |
+| deriche | Edge detection filter |
+| doitgen | Multi-resolution analysis kernel (MADNESS) |
+| durbin | Toeplitz system solver |
+| fdtd-2d | 2-D Finite Different Time Domain Kernel |
+| gemm | Matrix-multiply C=alpha.A.B+beta.C |
+| gemver | Vector Multiplication and Matrix Addition |
+| gesummv | Scalar, Vector and Matrix Multiplication |
+| gramschmidt | Gram-Schmidt decomposition |
+| head-3d | Heat equation over 3D data domain |
+| jacobi-1D | 1-D Jacobi stencil computation |
+| jacobi-2D | 2-D Jacobi stencil computation |
+| lu | LU decomposition |
+| ludcmp | LU decomposition followed by Forward Substitution |
+| mvt | Matrix Vector Product and Transpose |
+| nussinov | Dynamic programming algorithm for sequence alignment |
+| seidel | 2-D Seidel stencil computation |
+| symm | Symmetric matrix-multiply |
+| syr2k | Symmetric rank-2k update |
+| syrk | Symmetric rank-k update |
+| trisolv | Triangular solver |
+| trmm | Triangular matrix-multiply |
 
 
 ### Mailing lists:
