@@ -10,12 +10,14 @@
 
 
 static void init_array(int n, double A[N][N], double B[N][N]) {
-  int i, j;
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++) {
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       A[i][j] = ((double)i * (j + 2) + 2) / n;
       B[i][j] = ((double)i * (j + 3) + 3) / n;
     }
+  );
 }
 
 static void print_array(int n, double A[N][N]) {
@@ -35,18 +37,25 @@ static void kernel_jacobi_2d(int tsteps,
                              int n,
                              double A[N][N],
                              double B[N][N]) {
-  int t, i, j;
 #pragma scop
-  for (t = 0; t < tsteps; t++) {
-    for (i = 1; i < n - 1; i++)
-      for (j = 1; j < n - 1; j++)
+  RAJA::forall<RAJA::seq_exec> (0, tsteps, [=] (int t) {
+    RAJA::forallN<Independent2DTiled> (
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeSegment { 1, n - 1 },
+      [=] (int i, int j) {
         B[i][j] = 0.2 * (A[i][j] + A[i][j - 1] + A[i][1 + j] + A[1 + i][j]
-                         + A[i - 1][j]);
-    for (i = 1; i < n - 1; i++)
-      for (j = 1; j < n - 1; j++)
+                       + A[i - 1][j]);
+      }
+    );
+    RAJA::forallN<Independent2DTiled> (
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeSegment { 1, n - 1 },
+      [=] (int i, int j) {
         A[i][j] = 0.2 * (B[i][j] + B[i][j - 1] + B[i][1 + j] + B[1 + i][j]
-                         + B[i - 1][j]);
-  }
+                       + B[i - 1][j]);
+      }
+    );
+  });
 #pragma endscop
 }
 

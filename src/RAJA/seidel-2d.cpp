@@ -10,10 +10,13 @@
 
 
 static void init_array(int n, double A[N][N]) {
-  int i, j;
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       A[i][j] = ((double)i * (j + 2) + 2) / n;
+    }
+  );
 }
 
 static void print_array(int n, double A[N][N]) {
@@ -32,9 +35,14 @@ static void print_array(int n, double A[N][N]) {
 static void kernel_seidel_2d(int tsteps, int n, double A[N][N]) {
   int t, i, j;
 #pragma scop
-  for (t = 0; t <= tsteps - 1; t++)
-    for (i = 1; i <= n - 2; i++)
-      for (j = 1; j <= n - 2; j++)
+  RAJA::forallN<RAJA::NestedPolicy<
+    RAJA::ExecList<RAJA::seq_exec,RAJA::simd_exec,RAJA::simd_exec>,
+    RAJA::Tile<RAJA::TileList<RAJA::tile_none,RAJA::tile_fixed<16>,RAJA::tile_fixed<16>>>
+  >> (
+    RAJA::RangeSegment { 0, tsteps },
+    RAJA::RangeSegment { 1, n - 1 },
+    RAJA::RangeSegment { 1, n - 1 },
+    [=] (int t, int i, int j) {
         A[i][j] = (A[i - 1][j - 1] + A[i - 1][j] + A[i - 1][j + 1] + A[i][j - 1]
                    + A[i][j]
                    + A[i][j + 1]
@@ -42,6 +50,8 @@ static void kernel_seidel_2d(int tsteps, int n, double A[N][N]) {
                    + A[i + 1][j]
                    + A[i + 1][j + 1])
                   / 9.0;
+    }
+  );
 #pragma endscop
 }
 

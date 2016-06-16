@@ -11,10 +11,13 @@
 
 static void init_array(int n, double u[N][N]) {
   int i, j;
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++) {
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       u[i][j] = (double)(i + n - j) / n;
     }
+  );
 }
 
 static void print_array(int n, double u[N][N]) {
@@ -36,7 +39,6 @@ static void kernel_adi(int tsteps,
                        double v[N][N],
                        double p[N][N],
                        double q[N][N]) {
-  int t, i, j;
   double DX, DY, DT;
   double B1, B2;
   double mul1, mul2;

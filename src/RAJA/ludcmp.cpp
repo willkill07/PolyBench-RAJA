@@ -14,34 +14,44 @@ static void init_array(int n,
                        double b[N],
                        double x[N],
                        double y[N]) {
-  int i, j;
   double fn = (double)n;
-  for (i = 0; i < n; i++) {
+  double(*B)[N][N];
+  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     x[i] = 0;
     y[i] = 0;
     b[i] = (i + 1) / fn / 2.0 + 4;
-  }
-  for (i = 0; i < n; i++) {
-    for (j = 0; j <= i; j++)
-      A[i][j] = (double)(-j % n) / n + 1;
-    for (j = i + 1; j < n; j++) {
-      A[i][j] = 0;
+  });
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
+      A[i][j] = (j < i) ? ((double)(-j % n) / n + 1) : (i == j);
     }
-    A[i][i] = 1;
-  }
-  int r, s, t;
-  double(*B)[N][N];
-  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
-  for (r = 0; r < n; ++r)
-    for (s = 0; s < n; ++s)
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int r, int s) {
       (*B)[r][s] = 0;
-  for (t = 0; t < n; ++t)
-    for (r = 0; r < n; ++r)
-      for (s = 0; s < n; ++s)
+    }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int t, int r) {
+      RAJA::forall<RAJA::simd_exec> (0, n, [=] (int s) {
         (*B)[r][s] += A[r][t] * A[s][t];
-  for (r = 0; r < n; ++r)
-    for (s = 0; s < n; ++s)
+      });
+    }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int r, int s) {
       A[r][s] = (*B)[r][s];
+    }
+  );
   free((void*)B);
 }
 
@@ -62,37 +72,37 @@ static void kernel_ludcmp(int n,
                           double b[N],
                           double x[N],
                           double y[N]) {
-  int i, j, k;
-  double w;
 #pragma scop
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < i; j++) {
-      w = A[i][j];
-      for (k = 0; k < j; k++) {
-        w -= A[i][k] * A[k][j];
-      }
-      A[i][j] = w / A[j][j];
-    }
-    for (j = i; j < n; j++) {
-      w = A[i][j];
-      for (k = 0; k < i; k++) {
-        w -= A[i][k] * A[k][j];
-      }
-      A[i][j] = w;
-    }
-  }
-  for (i = 0; i < n; i++) {
-    w = b[i];
-    for (j = 0; j < i; j++)
-      w -= A[i][j] * y[j];
-    y[i] = w;
-  }
-  for (i = n - 1; i >= 0; i--) {
-    w = y[i];
-    for (j = i + 1; j < n; j++)
-      w -= A[i][j] * x[j];
-    x[i] = w / A[i][i];
-  }
+  RAJA::forall<RAJA::seq_exec> (0, n, [=] (int i) {
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, i, [=] (int j) {
+      double w = 0.0;
+      RAJA::forall<RAJA::simd_exec> (0, j, [=] (int j) {
+        w += A[i][k] * A[k][j];
+      });
+      A[i][j] = (A[i][j] - w) / A[j][j];
+    });
+    RAJA::forall<RAJA::omp_parallel_for_exec> (i, n, [=] (int j) {
+      double w = 0.0;
+      RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
+        w += A[i][k] * A[k][j];
+      });
+      A[i][j] = A[i][j] - w;
+    });
+  });
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
+    double w = 0.0;
+    RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
+      w += A[i][j] * y[j];
+    });
+    y[i] = b[i] - w;
+  });
+  RAJA::forall<RAJA::omp_parallel_for_exec> (n - 1, -1, -1, [=] (int i) {
+    double w = 0.0;
+    RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
+      w += A[i][j] * x[j];
+    });
+    x[i] = (y[i] - w) / A[i][i];
+  });
 #pragma endscop
 }
 

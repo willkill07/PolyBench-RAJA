@@ -10,11 +10,10 @@
 
 
 static void init_array(int n, double A[N], double B[N]) {
-  int i;
-  for (i = 0; i < n; i++) {
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     A[i] = ((double)i + 2) / n;
     B[i] = ((double)i + 3) / n;
-  }
+  });
 }
 
 static void print_array(int n, double A[N]) {
@@ -30,14 +29,15 @@ static void print_array(int n, double A[N]) {
 }
 
 static void kernel_jacobi_1d(int tsteps, int n, double A[N], double B[N]) {
-  int t, i;
 #pragma scop
-  for (t = 0; t < tsteps; t++) {
-    for (i = 1; i < n - 1; i++)
+  RAJA::forall<RAJA::seq_exec> (0, tsteps, [=] (int t) {
+    RAJA::forall<RAJA::omp_parallel_for_exec> (1, n - 1, [=] (int i) {
       B[i] = 0.33333 * (A[i - 1] + A[i] + A[i + 1]);
-    for (i = 1; i < n - 1; i++)
+    });
+    RAJA::forall<RAJA::omp_parallel_for_exec> (1, n - 1, [=] (int i) {
       A[i] = 0.33333 * (B[i - 1] + B[i] + B[i + 1]);
-  }
+    });
+  });
 #pragma endscop
 }
 

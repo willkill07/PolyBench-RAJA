@@ -10,28 +10,38 @@
 
 
 static void init_array(int n, double A[N][N]) {
-  int i, j;
-  for (i = 0; i < n; i++) {
-    for (j = 0; j <= i; j++)
-      A[i][j] = (double)(-j % n) / n + 1;
-    for (j = i + 1; j < n; j++) {
-      A[i][j] = 0;
-    }
-    A[i][i] = 1;
-  }
-  int r, s, t;
   double(*B)[N][N];
   B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
-  for (r = 0; r < n; ++r)
-    for (s = 0; s < n; ++s)
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
+      A[i][j] = (j < i) ? ((double)(-j % n) / n + 1) : (j == i);
+    }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int r, int s) {
       (*B)[r][s] = 0;
-  for (t = 0; t < n; ++t)
-    for (r = 0; r < n; ++r)
-      for (s = 0; s < n; ++s)
+    }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int t, int r) {
+      RAJA::forall<RAJA::simd_exec> (0, n, [=] (int s) {
         (*B)[r][s] += A[r][t] * A[s][t];
-  for (r = 0; r < n; ++r)
-    for (s = 0; s < n; ++s)
+      });
+    }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int r, int s) {
       A[r][s] = (*B)[r][s];
+    }
+  );
   free((void*)B);
 }
 
@@ -51,19 +61,20 @@ static void print_array(int n, double A[N][N]) {
 static void kernel_lu(int n, double A[N][N]) {
   int i, j, k;
 #pragma scop
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < i; j++) {
-      for (k = 0; k < j; k++) {
+  RAJA::forall<RAJA::seq_exec> (0, n, [=] (int i) {
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, i, [=] (int j) {
+      RAJA::forall<RAJA::simd_exec> (0, j, [=] (int j) {
         A[i][j] -= A[i][k] * A[k][j];
-      }
+      });
       A[i][j] /= A[j][j];
-    }
-    for (j = i; j < n; j++) {
-      for (k = 0; k < i; k++) {
+    });
+    RAJA::forall<RAJA::omp_parallel_for_exec> (i, n, [=] (int j) {
+      RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
         A[i][j] -= A[i][k] * A[k][j];
-      }
-    }
-  }
+      });
+      A[i][j] /= A[j][j];
+    });
+  });
 #pragma endscop
 }
 

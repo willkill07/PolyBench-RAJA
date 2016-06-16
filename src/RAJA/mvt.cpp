@@ -15,15 +15,15 @@ static void init_array(int n,
                        double y_1[N],
                        double y_2[N],
                        double A[N][N]) {
-  int i, j;
-  for (i = 0; i < n; i++) {
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     x1[i] = (double)(i % n) / n;
     x2[i] = (double)((i + 1) % n) / n;
     y_1[i] = (double)((i + 3) % n) / n;
     y_2[i] = (double)((i + 4) % n) / n;
-    for (j = 0; j < n; j++)
+    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int j) {
       A[i][j] = (double)(i * j % n) / n;
-  }
+    });
+  });
 }
 
 static void print_array(int n, double x1[N], double x2[N]) {
@@ -50,14 +50,21 @@ static void kernel_mvt(int n,
                        double y_1[N],
                        double y_2[N],
                        double A[N][N]) {
-  int i, j;
 #pragma scop
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
-      x1[i] = x1[i] + A[i][j] * y_1[j];
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
-      x2[i] = x2[i] + A[j][i] * y_2[j];
+  RAJA::forallN<OuterIndependent2D> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
+      x1[i] += A[i][j] * y_1[j];
+    }
+  );
+  RAJA::forallN<OuterIndependent2D> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
+      x2[i] += A[j][i] * y_2[j];
+    }
+  );
 #pragma endscop
 }
 
