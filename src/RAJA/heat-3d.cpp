@@ -40,7 +40,7 @@ static void kernel_heat_3d(int tsteps,
                            double B[N][N][N]) {
   int t, i, j, k;
 #pragma scop
-  RAJA::forall<RAJA::seq_exec> (0, tsteps, [=] {
+  RAJA::forall<RAJA::seq_exec> (0, tsteps, [=] (int t) {
     RAJA::forallN<Independent3DTiled> (
       RAJA::RangeSegment { 1, n - 1 },
       RAJA::RangeSegment { 1, n - 1 },

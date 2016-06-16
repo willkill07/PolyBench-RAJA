@@ -30,11 +30,6 @@ using OMP_ParallelRegion = typename RAJA::NestedPolicy<
   RAJA::OMP_Parallel<RAJA::Execute>
 >;
 
-template <typename BODY>
-void ParallelRegion (BODY && b) {
-  RAJA::forallN<OMP_ParallelRegion> (RAJA::RangeSegment { 0, 1 }, b);
-}
-
 using OuterIndependent2D = typename RAJA::NestedPolicy<
   RAJA::ExecList<
     RAJA::omp_parallel_for_exec,

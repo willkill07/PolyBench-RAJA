@@ -77,7 +77,7 @@ static void kernel_adi(int tsteps,
     );
     RAJA::forallN<OuterIndependent2D> (
       RAJA::RangeSegment { 1, n - 1 },
-      RAJA::RangeStridedSegment { n - 2, 0, -1 },
+      RAJA::RangeStrideSegment { n - 2, 0, -1 },
       [=] (int i, int j) {
         v[j][i] = p[i][j] * v[j + 1][i] + q[i][j];
       }
@@ -101,7 +101,7 @@ static void kernel_adi(int tsteps,
     );
     RAJA::forallN<OuterIndependent2D> (
       RAJA::RangeSegment { 1, n - 1 },
-      RAJA::RangeStridedSegment { n - 2, 0, -1 },
+      RAJA::RangeStrideSegment { n - 2, 0, -1 },
       [=] (int i, int j) {
         u[i][j] = p[i][j] * u[i][j + 1] + q[i][j];
       }

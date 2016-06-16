@@ -80,7 +80,7 @@ static void kernel_3mm(int ni,
     RAJA::RangeSegment { 0, nj },
     [=] (int i, int j) {
       double v { 0.0 };
-      RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
+      RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) mutable {
         v += A[i][k] * B[k][j];
       });
       E[i][j] = v;
@@ -91,7 +91,7 @@ static void kernel_3mm(int ni,
     RAJA::RangeSegment { 0, nl },
     [=] (int i, int j) {
       double v { 0.0 };
-      RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
+      RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) mutable {
         v += C[i][k] * D[k][j];
       });
       F[i][j] = v;
@@ -102,7 +102,7 @@ static void kernel_3mm(int ni,
     RAJA::RangeSegment { 0, nl },
     [=] (int i, int j) {
       double v { 0.0 };
-      RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
+      RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) mutable {
         v += E[i][k] * F[k][j];
       });
       G[i][j] = v;

@@ -62,26 +62,24 @@ static void kernel_gramschmidt(int m,
                                double Q[M][N]) {
 #pragma scop
   RAJA::forall<RAJA::seq_exec> (0, n, [=] (int k) {
-    ParallelRegion([=] () mutable {
-      RAJA::ReduceSum<RAJA::omp_reduce, double> nrm { 0.0 };
-      RAJA::forall<RAJA::omp_for_nowait_exec> (0, m, [=] (int i) {
-        nrm += A[i][k] * A[i][k];
+    RAJA::ReduceSum<RAJA::omp_reduce, double> nrm { 0.0 };
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int i) {
+      nrm += A[i][k] * A[i][k];
+    });
+    R[k][k] = sqrt(nrm);
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int i) {
+      Q[i][k] = A[i][k] / R[k][k];
+    });
+    RAJA::forall<RAJA::omp_parallel_for_exec> (k + 1, n, [=] (int j) {
+      R[k][j] = 0.0;
+      RAJA::forall<RAJA::simd_exec> (0, m, [=] (int i) {
+        R[k][j] += Q[i][k] * A[i][j];
       });
-      R[k][k] = sqrt(nrm);
-      RAJA::forall<RAJA::omp_for_nowait_exec> (0, m, [=] (int i) {
-        Q[i][k] = A[i][k] / R[k][k];
-      });
-      RAJA::forall<RAJA::omp_for_nowait_exec> (k + 1, n, [=] (int j) {
-        R[k][j] = 0.0;
-        RAJA::forall<RAJA::simd_exec> (0, m, [=] (int i) {
-          R[k][j] += Q[i][k] * A[i][j];
-        });
-        RAJA::forall<RAJA::simd_exec> (0, m, [=] (int i) {
-          A[i][j] -= Q[i][k] * R[k][j];
-        });
+      RAJA::forall<RAJA::simd_exec> (0, m, [=] (int i) {
+        A[i][j] -= Q[i][k] * R[k][j];
       });
     });
-  }
+  });
 #pragma endscop
 }
 

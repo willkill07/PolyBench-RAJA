@@ -53,7 +53,7 @@ static void kernel_bicg(int m,
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     q[i] = 0.0;
   });
-  RAJA::forallN<Independent2DTile<32,16>> (
+  RAJA::forallN<Independent2DTiledVerbose<32,16>> (
     RAJA::RangeSegment{0,n},
     RAJA::RangeSegment{0,m},
     [=] (int i, int j) {

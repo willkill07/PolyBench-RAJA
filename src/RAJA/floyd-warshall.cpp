@@ -47,7 +47,8 @@ static void kernel_floyd_warshall(int n, int path[N][N]) {
      RAJA::RangeSegment { 0, n },
      [=] (int k, int i, int j) {
        path[i][j] = std::min (path[i][j], path[i][k] + path[k][j]);
-  }
+     }
+  );
 #pragma endscop
 }
 

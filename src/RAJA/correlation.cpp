@@ -57,7 +57,7 @@ static void kernel_correlation(int m,
     stddev[j] = sqrt (stddev_r / float_n);
     stddev[j] = (stddev[j] <= eps) ? 1.0 : stddev[j];
   });
-  RAJA::forallN<Independent2DTile<32,16>> (
+  RAJA::forallN<Independent2DTiledVerbose<32,16>> (
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, m },
     [=] (int i, int j) {
@@ -65,7 +65,7 @@ static void kernel_correlation(int m,
       corr[i][j] = (i == j) ? 1.0 : 0.0;
     }
   );
-  RAJA::forallN<Independent2DTile<32,16>> (
+  RAJA::forallN<Independent2DTiledVerbose<32,16>> (
     RAJA::RangeSegment { 0, m - 1 },
     RAJA::RangeSegment { 1, m },
     [=] (int i, int j) {

@@ -75,33 +75,28 @@ static void kernel_ludcmp(int n,
 #pragma scop
   RAJA::forall<RAJA::seq_exec> (0, n, [=] (int i) {
     RAJA::forall<RAJA::omp_parallel_for_exec> (0, i, [=] (int j) {
-      double w = 0.0;
-      RAJA::forall<RAJA::simd_exec> (0, j, [=] (int j) {
-        w += A[i][k] * A[k][j];
+      RAJA::forall<RAJA::simd_exec> (0, j, [=] (int k) {
+        A[i][j] -= A[i][k] * A[k][j];
       });
-      A[i][j] = (A[i][j] - w) / A[j][j];
+      A[i][j] /= A[j][j];
     });
     RAJA::forall<RAJA::omp_parallel_for_exec> (i, n, [=] (int j) {
-      double w = 0.0;
-      RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
-        w += A[i][k] * A[k][j];
+      RAJA::forall<RAJA::simd_exec> (0, i, [=] (int k) {
+        A[i][j] -= A[i][k] * A[k][j];
       });
-      A[i][j] = A[i][j] - w;
     });
   });
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
-    double w = 0.0;
     RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
-      w += A[i][j] * y[j];
+      b[i] -= A[i][j] * y[j];
     });
-    y[i] = b[i] - w;
+    y[i] = b[i];
   });
   RAJA::forall<RAJA::omp_parallel_for_exec> (n - 1, -1, -1, [=] (int i) {
-    double w = 0.0;
     RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
-      w += A[i][j] * x[j];
+      y[i] -= A[i][j] * x[j];
     });
-    x[i] = (y[i] - w) / A[i][i];
+    x[i] = y[i] / A[i][i];
   });
 #pragma endscop
 }

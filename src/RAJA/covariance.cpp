@@ -11,7 +11,7 @@
 
 static void init_array(int m, int n, double* float_n, double data[N][M]) {
   *float_n = (double)n;
-  RAJA::forallN<Independent2DTile<32,16>> (
+  RAJA::forallN<Independent2DTiledVerbose<32,16>> (
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, m },
     [=] (int i, int j) {
