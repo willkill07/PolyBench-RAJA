@@ -14,15 +14,21 @@ static void init_array(int m,
                        double A[M][N],
                        double R[N][N],
                        double Q[M][N]) {
-  int i, j;
-  for (i = 0; i < m; i++)
-    for (j = 0; j < n; j++) {
+  RAJA::forallN<Independent2D> (
+    RAJA::RangeSegment { 0, m },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       A[i][j] = (((double)((i * j) % m) / m) * 100) + 10;
       Q[i][j] = 0.0;
     }
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
+  );
+  RAJA::forallN<Independent2D> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       R[i][j] = 0.0;
+    }
+  );
 }
 
 static void print_array(int m,
@@ -54,23 +60,27 @@ static void kernel_gramschmidt(int m,
                                double A[M][N],
                                double R[N][N],
                                double Q[M][N]) {
-  int i, j, k;
-  double nrm;
 #pragma scop
-  for (k = 0; k < n; k++) {
-    nrm = 0.0;
-    for (i = 0; i < m; i++)
-      nrm += A[i][k] * A[i][k];
-    R[k][k] = sqrt(nrm);
-    for (i = 0; i < m; i++)
-      Q[i][k] = A[i][k] / R[k][k];
-    for (j = k + 1; j < n; j++) {
-      R[k][j] = 0.0;
-      for (i = 0; i < m; i++)
-        R[k][j] += Q[i][k] * A[i][j];
-      for (i = 0; i < m; i++)
-        A[i][j] = A[i][j] - Q[i][k] * R[k][j];
-    }
+  RAJA::forall<RAJA::seq_exec> (0, n, [=] (int k) {
+    ParallelRegion([=] () mutable {
+      RAJA::ReduceSum<RAJA::omp_reduce, double> nrm { 0.0 };
+      RAJA::forall<RAJA::omp_for_nowait_exec> (0, m, [=] (int i) {
+        nrm += A[i][k] * A[i][k];
+      });
+      R[k][k] = sqrt(nrm);
+      RAJA::forall<RAJA::omp_for_nowait_exec> (0, m, [=] (int i) {
+        Q[i][k] = A[i][k] / R[k][k];
+      });
+      RAJA::forall<RAJA::omp_for_nowait_exec> (k + 1, n, [=] (int j) {
+        R[k][j] = 0.0;
+        RAJA::forall<RAJA::simd_exec> (0, m, [=] (int i) {
+          R[k][j] += Q[i][k] * A[i][j];
+        });
+        RAJA::forall<RAJA::simd_exec> (0, m, [=] (int i) {
+          A[i][j] -= Q[i][k] * R[k][j];
+        });
+      });
+    });
   }
 #pragma endscop
 }

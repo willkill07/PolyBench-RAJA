@@ -10,10 +10,9 @@
 
 
 static void init_array(int n, double r[N]) {
-  int i, j;
-  for (i = 0; i < n; i++) {
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     r[i] = (n + 1 - i);
-  }
+  });
 }
 
 static void print_array(int n, double y[N]) {
@@ -38,21 +37,21 @@ static void kernel_durbin(int n, double r[N], double y[N]) {
   y[0] = -r[0];
   beta = 1.0;
   alpha = -r[0];
-  for (k = 1; k < n; k++) {
+  RAJA::forall<RAJA::seq_exec> (1, n, [=] (int k) mutable {
     beta = (1 - alpha * alpha) * beta;
-    sum = 0.0;
-    for (i = 0; i < k; i++) {
+    RAJA::ReduceSum<RAJA::omp_reduce, double> sum { 0.0 };
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=] (int i) {
       sum += r[k - i - 1] * y[i];
-    }
+    });
     alpha = -(r[k] + sum) / beta;
-    for (i = 0; i < k; i++) {
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=] (int i) mutable {
       z[i] = y[i] + alpha * y[k - i - 1];
-    }
-    for (i = 0; i < k; i++) {
+    });
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=] (int i) {
       y[i] = z[i];
-    }
+    });
     y[k] = alpha;
-  }
+  });
 #pragma endscop
 }
 

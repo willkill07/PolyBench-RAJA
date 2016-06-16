@@ -15,16 +15,15 @@ static void init_array(int n,
                        double A[N][N],
                        double B[N][N],
                        double x[N]) {
-  int i, j;
   *alpha = 1.5;
   *beta = 1.2;
-  for (i = 0; i < n; i++) {
+  RAJA::forall<RAJA::omp_parallel_for_exec>(0, n, [=] (int i) {
     x[i] = (double)(i % n) / n;
-    for (j = 0; j < n; j++) {
+    RAJA::forall<RAJA::simd_exec>(0, n, [=] (int j) {
       A[i][j] = (double)((i * j + 1) % n) / n;
       B[i][j] = (double)((i * j + 2) % n) / n;
-    }
-  }
+    });
+  });
 }
 
 static void print_array(int n, double y[N]) {
@@ -47,17 +46,16 @@ static void kernel_gesummv(int n,
                            double tmp[N],
                            double x[N],
                            double y[N]) {
-  int i, j;
 #pragma scop
-  for (i = 0; i < n; i++) {
+  RAJA::forall<RAJA::omp_parallel_for_exec>(0, n, [=] (int i) {
     tmp[i] = 0.0;
     y[i] = 0.0;
-    for (j = 0; j < n; j++) {
-      tmp[i] = A[i][j] * x[j] + tmp[i];
-      y[i] = B[i][j] * x[j] + y[i];
-    }
+    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int j) {
+      tmp[i] += A[i][j] * x[j];
+      y[i] += B[i][j] * x[j];
+    });
     y[i] = alpha * tmp[i] + beta * y[i];
-  }
+  });
 #pragma endscop
 }
 

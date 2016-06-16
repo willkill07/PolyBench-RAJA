@@ -10,11 +10,14 @@
 
 
 static void init_array(int n, double A[N][N][N], double B[N][N][N]) {
-  int i, j, k;
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
-      for (k = 0; k < n; k++)
-        A[i][j][k] = B[i][j][k] = (double)(i + j + (n - k)) * 10 / (n);
+  RAJA::forallN<Independent3D> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j, int k) {
+      A[i][j][k] = B[i][j][k] = (double)(i + j + (n - k)) * 10 / (n);
+    }
+  );
 }
 
 static void print_array(int n, double A[N][N][N]) {
@@ -37,30 +40,32 @@ static void kernel_heat_3d(int tsteps,
                            double B[N][N][N]) {
   int t, i, j, k;
 #pragma scop
-  for (t = 1; t <= TSTEPS; t++) {
-    for (i = 1; i < n - 1; i++) {
-      for (j = 1; j < n - 1; j++) {
-        for (k = 1; k < n - 1; k++) {
-          B[i][j][k] =
-              0.125 * (A[i + 1][j][k] - 2.0 * A[i][j][k] + A[i - 1][j][k])
-              + 0.125 * (A[i][j + 1][k] - 2.0 * A[i][j][k] + A[i][j - 1][k])
-              + 0.125 * (A[i][j][k + 1] - 2.0 * A[i][j][k] + A[i][j][k - 1])
-              + A[i][j][k];
-        }
+  RAJA::forall<RAJA::seq_exec> (0, tsteps, [=] {
+    RAJA::forallN<Independent3DTiled> (
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeSegment { 1, n - 1 },
+      [=] (int i, int j, int k) {
+        B[i][j][k] =
+          0.125 * (A[i + 1][j][k] - 2.0 * A[i][j][k] + A[i - 1][j][k])
+          + 0.125 * (A[i][j + 1][k] - 2.0 * A[i][j][k] + A[i][j - 1][k])
+          + 0.125 * (A[i][j][k + 1] - 2.0 * A[i][j][k] + A[i][j][k - 1])
+          + A[i][j][k];
       }
-    }
-    for (i = 1; i < n - 1; i++) {
-      for (j = 1; j < n - 1; j++) {
-        for (k = 1; k < n - 1; k++) {
-          A[i][j][k] =
-              0.125 * (B[i + 1][j][k] - 2.0 * B[i][j][k] + B[i - 1][j][k])
-              + 0.125 * (B[i][j + 1][k] - 2.0 * B[i][j][k] + B[i][j - 1][k])
-              + 0.125 * (B[i][j][k + 1] - 2.0 * B[i][j][k] + B[i][j][k - 1])
-              + B[i][j][k];
-        }
+    );
+    RAJA::forallN<Independent3DTiled> (
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeSegment { 1, n - 1 },
+      [=] (int i, int j, int k) {
+        A[i][j][k] =
+          0.125 * (B[i + 1][j][k] - 2.0 * B[i][j][k] + B[i - 1][j][k])
+          + 0.125 * (B[i][j + 1][k] - 2.0 * B[i][j][k] + B[i][j - 1][k])
+          + 0.125 * (B[i][j][k + 1] - 2.0 * B[i][j][k] + B[i][j][k - 1])
+          + B[i][j][k];
       }
-    }
-  }
+    );
+  });
 #pragma endscop
 }
 

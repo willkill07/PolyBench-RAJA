@@ -14,14 +14,21 @@ static void init_array(int nr,
                        int np,
                        double A[NR][NQ][NP],
                        double C4[NP][NP]) {
-  int i, j, k;
-  for (i = 0; i < nr; i++)
-    for (j = 0; j < nq; j++)
-      for (k = 0; k < np; k++)
-        A[i][j][k] = (double)((i * j + k) % np) / np;
-  for (i = 0; i < np; i++)
-    for (j = 0; j < np; j++)
+  RAJA::forallN<Independent3DTiled> (
+    RAJA::RangeSegment { 0, nr },
+    RAJA::RangeSegment { 0, nq },
+    RAJA::RangeSegment { 0, np },
+    [=] (int i, int j, int k) {
+      A[i][j][k] = (double)((i * j + k) % np) / np;
+    }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, np },
+    RAJA::RangeSegment { 0, np },
+    [=] (int i, int j) {
       C4[i][j] = (double)(i * j % np) / np;
+    }
+  );
 }
 
 static void print_array(int nr, int nq, int np, double A[NR][NQ][NP]) {
@@ -42,19 +49,24 @@ void kernel_doitgen(int nr,
                     int np,
                     double A[NR][NQ][NP],
                     double C4[NP][NP],
-                    double sum[NP]) {
+                    double sum[NR][NQ][NP]) {
   int r, q, p, s;
 #pragma scop
-  for (r = 0; r < nr; r++)
-    for (q = 0; q < nq; q++) {
-      for (p = 0; p < np; p++) {
-        sum[p] = 0.0;
-        for (s = 0; s < np; s++)
-          sum[p] += A[r][q][s] * C4[s][p];
-      }
-      for (p = 0; p < np; p++)
-        A[r][q][p] = sum[p];
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, nr },
+    RAJA::RangeSegment { 0, nq },
+    [=] (int r, int q) {
+      RAJA::forall<RAJA::omp_for_nowait_exec> (0, np, [=] (int p) {
+        sum[r][q][p] = 0.0;
+        RAJA::forall<RAJA::seq_exec> (0, np, [=] (int s) {
+          sum[r][q][p] += A[r][q][s] * C4[s][p];
+        });
+      });
+      RAJA::forall<RAJA::simd_exec> (0, np, [=] (int p) {
+        A[r][q][p] = sum[r][q][p];
+      });
     }
+  );
 #pragma endscop
 }
 
@@ -65,8 +77,9 @@ int main(int argc, char** argv) {
   double(*A)[NR][NQ][NP];
   A = (double(*)[NR][NQ][NP])polybench_alloc_data((NR) * (NQ) * (NP),
                                                   sizeof(double));
-  double(*sum)[NP];
-  sum = (double(*)[NP])polybench_alloc_data(NP, sizeof(double));
+  double(*sum)[NR][NQ][NP];
+  sum = (double(*)[NR][NQ][NP])polybench_alloc_data((NR) * (NQ) * (NP),
+                                                    sizeof(double));
   double(*C4)[NP][NP];
   C4 = (double(*)[NP][NP])polybench_alloc_data((NP) * (NP), sizeof(double));
   init_array(nr, nq, np, *A, *C4);

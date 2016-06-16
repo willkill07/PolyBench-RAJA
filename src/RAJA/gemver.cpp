@@ -21,11 +21,10 @@ static void init_array(int n,
                        double x[N],
                        double y[N],
                        double z[N]) {
-  int i, j;
   *alpha = 1.5;
   *beta = 1.2;
   double fn = (double)n;
-  for (i = 0; i < n; i++) {
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     u1[i] = i;
     u2[i] = ((i + 1) / fn) / 2.0;
     v1[i] = ((i + 1) / fn) / 4.0;
@@ -34,9 +33,10 @@ static void init_array(int n,
     z[i] = ((i + 1) / fn) / 9.0;
     x[i] = 0.0;
     w[i] = 0.0;
-    for (j = 0; j < n; j++)
+    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int j) {
       A[i][j] = (double)(i * j % n) / n;
-  }
+    });
+  });
 }
 
 static void print_array(int n, double w[N]) {
@@ -65,17 +65,30 @@ static void kernel_gemver(int n,
                           double z[N]) {
   int i, j;
 #pragma scop
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       A[i][j] = A[i][j] + u1[i] * v1[j] + u2[i] * v2[j];
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
+    }
+  );
+  RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::simd_exec>>> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       x[i] = x[i] + beta * A[j][i] * y[j];
-  for (i = 0; i < n; i++)
+    }
+  );
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     x[i] = x[i] + z[i];
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
+  });
+  RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::simd_exec>>> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       w[i] = w[i] + alpha * A[i][j] * x[j];
+    }
+  );
 #pragma endscop
 }
 

@@ -10,13 +10,15 @@
 
 
 static void init_array(int n, int path[N][N]) {
-  int i, j;
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++) {
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       path[i][j] = i * j % 7 + 1;
       if ((i + j) % 13 == 0 || (i + j) % 7 == 0 || (i + j) % 11 == 0)
         path[i][j] = 999;
     }
+  );
 }
 
 static void print_array(int n, int path[N][N]) {
@@ -35,12 +37,17 @@ static void print_array(int n, int path[N][N]) {
 static void kernel_floyd_warshall(int n, int path[N][N]) {
   int i, j, k;
 #pragma scop
-  for (k = 0; k < n; k++) {
-    for (i = 0; i < n; i++)
-      for (j = 0; j < n; j++)
-        path[i][j] = path[i][j] < path[i][k] + path[k][j]
-                         ? path[i][j]
-                         : path[i][k] + path[k][j];
+  RAJA::forallN<
+    RAJA::NestedPolicy<
+      RAJA::ExecList<
+        RAJA::omp_parallel_for_exec,
+        RAJA::seq_exec,
+        RAJA::seq_exec>>>
+    (RAJA::RangeSegment { 0, n },
+     RAJA::RangeSegment { 0, n },
+     RAJA::RangeSegment { 0, n },
+     [=] (int k, int i, int j) {
+       path[i][j] = std::min (path[i][j], path[i][k] + path[k][j]);
   }
 #pragma endscop
 }
