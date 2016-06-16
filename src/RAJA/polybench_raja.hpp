@@ -35,6 +35,19 @@ void ParallelRegion (BODY && b) {
   RAJA::forallN<OMP_ParallelRegion> (RAJA::RangeSegment { 0, 1 }, b);
 }
 
+using OuterIndependent2D = typename RAJA::NestedPolicy<
+  RAJA::ExecList<
+    RAJA::omp_parallel_for_exec,
+    RAJA::simd_exec
+  >,
+  RAJA::Tile<
+    RAJA::TileList<
+      RAJA::tile_fixed<16>,
+      RAJA::tile_none
+    >,
+    RAJA::Permute<RAJA::PERM_IJ>
+  >
+>;
 
 using Independent2D = typename RAJA::NestedPolicy<
   RAJA::ExecList<

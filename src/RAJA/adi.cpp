@@ -29,7 +29,6 @@ static void print_array(int n, double u[N][N]) {
   fprintf(stderr, "\nend   dump: %s\n", "u");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
-# 49 "adi.c"
 
 static void kernel_adi(int tsteps,
                        int n,
@@ -56,40 +55,56 @@ static void kernel_adi(int tsteps,
   d = -mul2 / 2.0;
   e = 1.0 + mul2;
   f = d;
-  for (t = 1; t <= tsteps; t++) {
-    for (i = 1; i < n - 1; i++) {
+  RAJA::forall<RAJA::seq_exec> (0, tsteps, [=] (int t) {
+    RAJA::forall<RAJA::omp_parallel_for_exec> (1, n - 1, [=] (int i) {
       v[0][i] = 1.0;
       p[i][0] = 0.0;
       q[i][0] = v[0][i];
-      for (j = 1; j < n - 1; j++) {
+      v[n - 1][i] = 1.0;
+    });
+    RAJA::forallN<OuterIndependent2D> (
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeSegment { 1, n - 1 },
+      [=] (int i, int j) {
         p[i][j] = -c / (a * p[i][j - 1] + b);
         q[i][j] =
             (-d * u[j][i - 1] + (1.0 + 2.0 * d) * u[j][i] - f * u[j][i + 1]
              - a * q[i][j - 1])
             / (a * p[i][j - 1] + b);
       }
-      v[n - 1][i] = 1.0;
-      for (j = n - 2; j >= 1; j--) {
+    );
+    RAJA::forallN<OuterIndependent2D> (
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeStridedSegment { n - 2, 0, -1 },
+      [=] (int i, int j) {
         v[j][i] = p[i][j] * v[j + 1][i] + q[i][j];
       }
-    }
-    for (i = 1; i < n - 1; i++) {
+    );
+    RAJA::forall<RAJA::omp_parallel_for_exec> (1, n - 1, [=] (int i) {
       u[i][0] = 1.0;
       p[i][0] = 0.0;
       q[i][0] = u[i][0];
-      for (j = 1; j < n - 1; j++) {
-        p[i][j] = -f / (d * p[i][j - 1] + e);
-        q[i][j] =
-            (-a * v[i - 1][j] + (1.0 + 2.0 * a) * v[i][j] - c * v[i + 1][j]
-             - d * q[i][j - 1])
-            / (d * p[i][j - 1] + e);
-      }
       u[i][n - 1] = 1.0;
-      for (j = n - 2; j >= 1; j--) {
+    });
+    RAJA::forallN<OuterIndependent2D> (
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeSegment { 1, n - 1 },
+      [=] (int i, int j) {
+        p[i][j] = -f / (d * p[i][j - 1] + e);
+      q[i][j] =
+        (-a * v[i - 1][j] + (1.0 + 2.0 * a) * v[i][j] - c * v[i + 1][j]
+         - d * q[i][j - 1])
+        / (d * p[i][j - 1] + e);
+      }
+    );
+    RAJA::forallN<OuterIndependent2D> (
+      RAJA::RangeSegment { 1, n - 1 },
+      RAJA::RangeStridedSegment { n - 2, 0, -1 },
+      [=] (int i, int j) {
         u[i][j] = p[i][j] * u[i][j + 1] + q[i][j];
       }
-    }
-  }
+    );
+  });
 #pragma endscop
 }
 
