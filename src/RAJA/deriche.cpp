@@ -14,7 +14,6 @@ static void init_array(int w,
                        float* alpha,
                        float imgIn[W][H],
                        float imgOut[W][H]) {
-  int i, j;
   *alpha = 0.25;
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, w },
@@ -45,7 +44,6 @@ static void kernel_deriche(int w,
                            float imgOut[W][H],
                            float y1[W][H],
                            float y2[W][H]) {
-  int i, j;
   float k;
   float a1, a2, a3, a4, a5, a6, a7, a8;
   float b1, b2, c1, c2;

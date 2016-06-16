@@ -31,8 +31,6 @@ static void kernel_durbin(int n, double r[N], double y[N]) {
   double z[N];
   double alpha;
   double beta;
-  double sum;
-  int i, k;
 #pragma scop
   y[0] = -r[0];
   beta = 1.0;

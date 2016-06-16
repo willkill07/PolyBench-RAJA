@@ -35,7 +35,6 @@ static void print_array(int n, int path[N][N]) {
 }
 
 static void kernel_floyd_warshall(int n, int path[N][N]) {
-  int i, j, k;
 #pragma scop
   RAJA::forallN<
     RAJA::NestedPolicy<

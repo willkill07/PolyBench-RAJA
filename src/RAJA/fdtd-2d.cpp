@@ -16,7 +16,6 @@ static void init_array(int tmax,
                        double ey[NX][NY],
                        double hz[NX][NY],
                        double _fict_[TMAX]) {
-  int i, j;
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, tmax, [=] (int i) {
     _fict_[i] = (double)i;
   });
@@ -69,7 +68,6 @@ static void kernel_fdtd_2d(int tmax,
                            double ey[NX][NY],
                            double hz[NX][NY],
                            double _fict_[TMAX]) {
-  int t, i, j;
 #pragma scop
   RAJA::forallN <OMP_ParallelRegion> (
     RAJA::RangeSegment { 0, tmax },

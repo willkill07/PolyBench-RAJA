@@ -11,7 +11,6 @@
 using Range = RAJA::RangeSegment;
 
 static void init_array(int m, int n, double A[M][N], double x[N]) {
-  int i, j;
   double fn;
   fn = (double)n;
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {

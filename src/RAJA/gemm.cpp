@@ -17,7 +17,6 @@ static void init_array(int ni,
                        double C[NI][NJ],
                        double A[NI][NK],
                        double B[NK][NJ]) {
-  int i, j;
   *alpha = 1.5;
   *beta = 1.2;
   RAJA::forallN<Independent2D> (

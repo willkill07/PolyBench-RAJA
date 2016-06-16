@@ -63,7 +63,6 @@ static void kernel_gemver(int n,
                           double x[N],
                           double y[N],
                           double z[N]) {
-  int i, j;
 #pragma scop
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, n },
