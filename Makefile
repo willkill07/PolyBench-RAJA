@@ -1,6 +1,6 @@
 RAJA_INSTALL_DIR := dist/RAJA
 CXX := clang++
-CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I. -O3 -march=native
+CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I./include -O3 -march=native
 CPPFLAGS := -std=c++11 -fopenmp
 LDFLAGS := $(RAJA_INSTALL_DIR)/lib/libRAJA.a
 
