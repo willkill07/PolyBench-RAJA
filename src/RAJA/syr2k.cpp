@@ -16,18 +16,23 @@ static void init_array(int n,
                        double C[N][N],
                        double A[N][M],
                        double B[N][M]) {
-  int i, j;
   *alpha = 1.5;
   *beta = 1.2;
-  for (i = 0; i < n; i++)
-    for (j = 0; j < m; j++) {
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, m },
+    [=] (int i, int j) {
       A[i][j] = (double)((i * j + 1) % n) / n;
       B[i][j] = (double)((i * j + 2) % m) / m;
     }
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++) {
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       C[i][j] = (double)((i * j + 3) % n) / m;
     }
+  );
 }
 
 static void print_array(int n, double C[N][N]) {
@@ -50,16 +55,19 @@ static void kernel_syr2k(int n,
                          double C[N][N],
                          double A[N][M],
                          double B[N][M]) {
-  int i, j, k;
 #pragma scop
-  for (i = 0; i < n; i++) {
-    for (j = 0; j <= i; j++)
-      C[i][j] *= beta;
-    for (k = 0; k < m; k++)
-      for (j = 0; j <= i; j++) {
-        C[i][j] += A[j][k] * alpha * B[i][k] + B[j][k] * alpha * A[i][k];
+  RAJA::forallN<Independent2D> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
+      if (j <= i) {
+        C[i][j] *= beta;
+        RAJA::forall<RAJA::simd_exec> (0, m, [=] (int k) {
+          C[i][j] += A[j][k] * alpha * B[i][k] + B[j][k] * alpha * A[i][k];
+        });
       }
-  }
+    }
+  );
 #pragma endscop
 }
 

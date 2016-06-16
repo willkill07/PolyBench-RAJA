@@ -10,13 +10,13 @@
 
 
 static void init_array(int n, double L[N][N], double x[N], double b[N]) {
-  int i, j;
-  for (i = 0; i < n; i++) {
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     x[i] = -999;
     b[i] = i;
-    for (j = 0; j <= i; j++)
+    RAJA::forall<RAJA::simd_exec> (0, i + 1, [=] (int j) {
       L[i][j] = (double)(i + n - j + 1) * 2 / n;
-  }
+    });
+  });
 }
 
 static void print_array(int n, double x[N]) {
@@ -32,14 +32,14 @@ static void print_array(int n, double x[N]) {
 }
 
 static void kernel_trisolv(int n, double L[N][N], double x[N], double b[N]) {
-  int i, j;
 #pragma scop
-  for (i = 0; i < n; i++) {
-    x[i] = b[i];
-    for (j = 0; j < i; j++)
-      x[i] -= L[i][j] * x[j];
-    x[i] = x[i] / L[i][i];
-  }
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
+    double v = 0.0;
+    RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) mutable {
+      v += L[i][j] * x[j];
+    });
+    x[i] = (b[i] - v) / L[i][i];
+  });
 #pragma endscop
 }
 

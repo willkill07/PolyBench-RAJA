@@ -14,17 +14,21 @@ static void init_array(int m,
                        double* alpha,
                        double A[M][M],
                        double B[M][N]) {
-  int i, j;
   *alpha = 1.5;
-  for (i = 0; i < m; i++) {
-    for (j = 0; j < i; j++) {
-      A[i][j] = (double)((i + j) % m) / m;
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, m },
+    RAJA::RangeSegment { 0, m },
+    [=] (int i, int j) {
+      A[i][j] = ((j < i) ? ((double)((i + j) % m) / m) : (i == j));
     }
-    A[i][i] = 1.0;
-    for (j = 0; j < n; j++) {
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, m },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
       B[i][j] = (double)((n + (i - j)) % n) / n;
     }
-  }
+  );
 }
 
 static void print_array(int m, int n, double B[M][N]) {
@@ -45,15 +49,17 @@ static void kernel_trmm(int m,
                         double alpha,
                         double A[M][M],
                         double B[M][N]) {
-  int i, j, k;
-# 68 "trmm.c"
 #pragma scop
-  for (i = 0; i < m; i++)
-    for (j = 0; j < n; j++) {
-      for (k = i + 1; k < m; k++)
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, m },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
+      RAJA::forall<RAJA::simd_exec> (i + i, m, [=] (int k) {
         B[i][j] += A[k][i] * B[k][j];
-      B[i][j] = alpha * B[i][j];
+      });
+      B[i][j] *= alpha;
     }
+  );
 #pragma endscop
 }
 
