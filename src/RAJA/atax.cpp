@@ -8,16 +8,18 @@
 /* Include benchmark-specific header. */
 #include "atax.hpp"
 
+using Range = RAJA::RangeSegment;
 
 static void init_array(int m, int n, double A[M][N], double x[N]) {
   int i, j;
   double fn;
   fn = (double)n;
-  for (i = 0; i < n; i++)
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     x[i] = 1 + (i / fn);
-  for (i = 0; i < m; i++)
-    for (j = 0; j < n; j++)
-      A[i][j] = (double)((i + j) % n) / (5 * m);
+  });
+  RAJA::forallN<Independent2D> (Range {0, m}, Range {0, n}, [=] (int i, int j) {
+    A[i][j] = (double)((i + j) % n) / (5 * m);
+  });
 }
 
 static void print_array(int n, double y[N]) {
@@ -38,17 +40,19 @@ static void kernel_atax(int m,
                         double x[N],
                         double y[N],
                         double tmp[M]) {
-  int i, j;
 #pragma scop
-  for (i = 0; i < n; i++)
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     y[i] = 0;
-  for (i = 0; i < m; i++) {
+  });
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int i) {
     tmp[i] = 0.0;
-    for (j = 0; j < n; j++)
-      tmp[i] = tmp[i] + A[i][j] * x[j];
-    for (j = 0; j < n; j++)
-      y[j] = y[j] + A[i][j] * tmp[i];
-  }
+    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int j) {
+      tmp[i] += A[i][j] * x[j];
+    });
+    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int j) {
+      y[j] += A[i][j] * tmp[i];
+    });
+  });
 #pragma endscop
 }
 

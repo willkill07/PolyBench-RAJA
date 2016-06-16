@@ -31,8 +31,8 @@ using Independent2D = typename RAJA::NestedPolicy<
   RAJA::OMP_Parallel<RAJA::Execute>
 >;
 
-template <size_t Loop1, size_t Loop2, typename Permutation = RAJA::PERM_IJ>
-using Independent2DTiled = typename RAJA::NestedPolicy<
+template <size_t Loop1 = 32, size_t Loop2 = 16, typename Permutation = RAJA::PERM_IJ>
+using Independent2DTiledVerbose = typename RAJA::NestedPolicy<
   RAJA::ExecList<
     RAJA::omp_collapse_nowait_exec,
     RAJA::omp_collapse_nowait_exec
@@ -47,6 +47,8 @@ using Independent2DTiled = typename RAJA::NestedPolicy<
     >
   >
 >;
+
+using Independent2DTiled = Independent2DTiledVerbose<>;
 
 extern double polybench_program_total_flops;
 extern void polybench_timer_start();

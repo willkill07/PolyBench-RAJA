@@ -10,11 +10,14 @@
 
 
 static void init_array(int m, int n, double* float_n, double data[N][M]) {
-  int i, j;
   *float_n = (double)n;
-  for (i = 0; i < N; i++)
-    for (j = 0; j < M; j++)
-      data[i][j] = ((double)i * j) / M;
+  RAJA::forallN<Independent2DTile<32,16>> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, m },
+    [=] (int i, int j) {
+      data[i][j] = ((double)i * j) / m;
+    }
+  );
 }
 
 static void print_array(int m, double cov[M][M]) {
@@ -36,25 +39,34 @@ static void kernel_covariance(int m,
                               double data[N][M],
                               double cov[M][M],
                               double mean[M]) {
-  int i, j, k;
 #pragma scop
-  for (j = 0; j < m; j++) {
-    mean[j] = 0.0;
-    for (i = 0; i < n; i++)
-      mean[j] += data[i][j];
-    mean[j] /= float_n;
-  }
-  for (i = 0; i < n; i++)
-    for (j = 0; j < m; j++)
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int j) {
+    RAJA::ReduceSum<RAJA::omp_reduce, double> mean_r { 0.0 };
+    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int i) {
+      mean_r += data[i][j];
+    });
+    mean[j] = mean_r / float_n;
+  });
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, m },
+    [=] (int i, int j) {
       data[i][j] -= mean[j];
-  for (i = 0; i < m; i++)
-    for (j = i; j < m; j++) {
-      cov[i][j] = 0.0;
-      for (k = 0; k < n; k++)
-        cov[i][j] += data[k][i] * data[k][j];
-      cov[i][j] /= (float_n - 1.0);
-      cov[j][i] = cov[i][j];
     }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, m },
+    RAJA::RangeSegment { 0, m },
+    [=] (int i, int j) {
+      if (i < j) {
+        RAJA::ReduceSum<RAJA::omp_reduce, double> cov_r { 0.0 };
+        RAJA::forall<RAJA::simd_exec> (0, n, [=] (int k) {
+          cov_r += data[k][i] * data[k][j];
+        });
+        cov[i][j] = cov[j][i] = cov_r / (float_n - 1.0);
+      }
+    }
+  );
 #pragma endscop
 }
 

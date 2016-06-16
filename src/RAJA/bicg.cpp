@@ -10,14 +10,15 @@
 
 
 static void init_array(int m, int n, double A[N][M], double r[N], double p[M]) {
-  int i, j;
-  for (i = 0; i < m; i++)
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int i) {
     p[i] = (double)(i % m) / m;
-  for (i = 0; i < n; i++) {
+  });
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     r[i] = (double)(i % n) / n;
-    for (j = 0; j < m; j++)
+    RAJA::forall<RAJA::simd_exec> (0, m, [=] (int j) {
       A[i][j] = (double)(i * (j + 1) % n) / n;
-  }
+    });
+  });
 }
 
 static void print_array(int m, int n, double s[M], double q[N]) {
@@ -45,17 +46,21 @@ static void kernel_bicg(int m,
                         double q[N],
                         double p[M],
                         double r[N]) {
-  int i, j;
 #pragma scop
-  for (i = 0; i < m; i++)
-    s[i] = 0;
-  for (i = 0; i < n; i++) {
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int i) {
+    s[i] = 0.0;
+  });
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     q[i] = 0.0;
-    for (j = 0; j < m; j++) {
-      s[j] = s[j] + r[i] * A[i][j];
-      q[i] = q[i] + A[i][j] * p[j];
+  });
+  RAJA::forallN<Independent2DTile<32,16>> (
+    RAJA::RangeSegment{0,n},
+    RAJA::RangeSegment{0,m},
+    [=] (int i, int j) {
+      s[j] += r[i] * A[i][j];
+      q[i] += A[i][j] * p[j];
     }
-  }
+  );
 #pragma endscop
 }
 

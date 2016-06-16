@@ -1,3 +1,4 @@
+
 /* 2mm.c: this file is part of PolyBench/C */
 #include <stdio.h>
 #include <unistd.h>
@@ -7,11 +8,6 @@
 #include "polybench_raja.hpp"
 /* Include benchmark-specific header. */
 #include "2mm.hpp"
-
-RAJA::RangeSegment IDir (0, NI);
-RAJA::RangeSegment JDir (0, NJ);
-RAJA::RangeSegment KDir (0, NK);
-RAJA::RangeSegment LDir (0, NL);
 
 static void init_array(int ni,
                        int nj,
@@ -26,18 +22,34 @@ static void init_array(int ni,
   *alpha = 1.5;
   *beta = 1.2;
 
-  RAJA::forallN <Independent2D> (IDir, KDir, [=] (int i, int j) {
-    A[i][j] = (double)((i * j + 1) % ni) / ni;
-  });
-  RAJA::forallN <Independent2D> (KDir, JDir, [=] (int i, int j) {
-    B[i][j] = (double)(i * (j + 1) % nj) / nj;
-  });
-  RAJA::forallN <Independent2D> (JDir, LDir, [=] (int i, int j) {
-    C[i][j] = (double)((i * (j + 3) + 1) % nl) / nl;
-  });
-  RAJA::forallN <Independent2D> (IDir, LDir, [=] (int i, int j) {
-    D[i][j] = (double)(i * (j + 2) % nk) / nk;
-  });
+  RAJA::forallN <Independent2DTiled> (
+    RAJA::RangeSegment { 0, ni },
+    RAJA::RangeSegment { 0, nk },
+    [=] (int i, int j) {
+      A[i][j] = (double)((i * j + 1) % ni) / ni;
+    }
+  );
+  RAJA::forallN <Independent2DTiled> (
+    RAJA::RangeSegment { 0, nk },
+    RAJA::RangeSegment { 0, nj },
+    [=] (int i, int j) {
+      B[i][j] = (double)(i * (j + 1) % nj) / nj;
+    }
+  );
+  RAJA::forallN <Independent2DTiled> (
+    RAJA::RangeSegment { 0, nj },
+    RAJA::RangeSegment { 0, nl },
+    [=] (int i, int j) {
+      C[i][j] = (double)((i * (j + 3) + 1) % nl) / nl;
+    }
+  );
+  RAJA::forallN <Independent2DTiled> (
+    RAJA::RangeSegment { 0, ni },
+    RAJA::RangeSegment { 0, nl },
+    [=] (int i, int j) {
+      D[i][j] = (double)(i * (j + 2) % nk) / nk;
+    }
+  );
 }
 
 static void print_array(int ni, int nl, double D[NI][NL]) {
@@ -65,17 +77,28 @@ static void kernel_2mm(int ni,
                        double C[NJ][NL],
                        double D[NI][NL]) {
 #pragma scop
-  using ExecPolicy = Independent2DTiled<32,16>;
-  RAJA::forallN <ExecPolicy> (IDir, JDir, [=] (int i, int j) {
-      tmp[i][j] = 0.0;
-      for (int k = 0; k < nk; ++k)
-        tmp[i][j] += alpha * A[i][k] * B[k][j];
-  });
-  RAJA::forallN <ExecPolicy> (IDir, LDir, [=] (int i, int j) {
-      D[i][j] *= beta;
-      for (int k = 0; k < nj; ++k)
-        D[i][j] += tmp[i][k] * C[k][j];
-  });
+  RAJA::forallN <Independent2DTiled> (
+    RAJA::RangeSegment { 0, ni },
+    RAJA::RangeSegment { 0, nj },
+    [=] (int i, int j) {
+      RAJA::ReduceSum<RAJA::omp_reduce, double> tmp_r { 0.0 };
+      RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
+        tmp_r += alpha * A[i][k] * B[k][j];
+      });
+      tmp[i][j] = tmp_r;
+    }
+  );
+  RAJA::forallN <Independent2DTiled> (
+    RAJA::RangeSegment { 0, ni },
+    RAJA::RangeSegment { 0, nl },
+    [=] (int i, int j) {
+      RAJA::ReduceSum<RAJA::omp_reduce, double> D_r { D[i][j] * beta };
+      RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
+        D_r += tmp[i][k] * C[k][j];
+      });
+      D[i][j] = D_r;
+    }
+  );
 #pragma endscop
 }
 

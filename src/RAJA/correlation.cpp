@@ -10,11 +10,14 @@
 
 
 static void init_array(int m, int n, double* float_n, double data[N][M]) {
-  int i, j;
   *float_n = (double)N;
-  for (i = 0; i < N; i++)
-    for (j = 0; j < M; j++)
-      data[i][j] = (double)(i * j) / M + i;
+  RAJA::forallN<Independent2D> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, m },
+    [=] (int i, int j) {
+      data[i][j] = (double)(i * j) / m + i;
+    }
+  );
 }
 
 static void print_array(int m, double corr[M][M]) {
@@ -37,38 +40,44 @@ static void kernel_correlation(int m,
                                double corr[M][M],
                                double mean[M],
                                double stddev[M]) {
-  int i, j, k;
   double eps = 0.1;
 #pragma scop
-  for (j = 0; j < m; j++) {
-    mean[j] = 0.0;
-    for (i = 0; i < n; i++)
-      mean[j] += data[i][j];
-    mean[j] /= float_n;
-  }
-  for (j = 0; j < m; j++) {
-    stddev[j] = 0.0;
-    for (i = 0; i < n; i++)
-      stddev[j] += (data[i][j] - mean[j]) * (data[i][j] - mean[j]);
-    stddev[j] /= float_n;
-    stddev[j] = sqrt(stddev[j]);
-    stddev[j] = stddev[j] <= eps ? 1.0 : stddev[j];
-  }
-  for (i = 0; i < n; i++)
-    for (j = 0; j < m; j++) {
-      data[i][j] -= mean[j];
-      data[i][j] /= sqrt(float_n) * stddev[j];
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int j) {
+    RAJA::ReduceSum<RAJA::omp_reduce, double> c_mean { 0.0 };
+    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int i) {
+      c_mean += data[i][j];
+    });
+    mean[j] = c_mean / float_n;
+  });
+  RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int j) {
+    RAJA::ReduceSum<RAJA::omp_reduce, double> stddev_r { 0.0 };
+    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int i) {
+      stddev_r += (data[i][j] - mean[j]) * (data[i][j] - mean[j]);
+    });
+    stddev[j] = sqrt (stddev_r / float_n);
+    stddev[j] = (stddev[j] <= eps) ? 1.0 : stddev[j];
+  });
+  RAJA::forallN<Independent2DTile<32,16>> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, m },
+    [=] (int i, int j) {
+      data[i][j] = (data[i][j] - mean[j]) / sqrt(float_n) * stddev[j];
+      corr[i][j] = (i == j) ? 1.0 : 0.0;
     }
-  for (i = 0; i < m - 1; i++) {
-    corr[i][i] = 1.0;
-    for (j = i + 1; j < m; j++) {
-      corr[i][j] = 0.0;
-      for (k = 0; k < n; k++)
-        corr[i][j] += (data[k][i] * data[k][j]);
-      corr[j][i] = corr[i][j];
+  );
+  RAJA::forallN<Independent2DTile<32,16>> (
+    RAJA::RangeSegment { 0, m - 1 },
+    RAJA::RangeSegment { 1, m },
+    [=] (int i, int j) {
+      if (i < j) {
+        RAJA::ReduceSum<RAJA::omp_reduce, double> corr_r { 0.0 };
+        RAJA::forall<RAJA::simd_exec> (0, n, [=] (int k) {
+            corr_r += data[k][i] * data[k][j];
+        });
+        corr[j][i] = corr[i][j] = corr_r;
+      }
     }
-  }
-  corr[m - 1][m - 1] = 1.0;
+  );
 #pragma endscop
 }
 
