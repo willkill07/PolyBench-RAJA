@@ -62,8 +62,8 @@ static void kernel_gramschmidt(int m,
                                double Q[M][N]) {
 #pragma scop
   RAJA::forall<RAJA::seq_exec> (0, n, [=] (int k) {
-    RAJA::ReduceSum<RAJA::omp_reduce, double> nrm { 0.0 };
-    RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int i) {
+    double nrm { 0.0 };
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=,&nrm] (int i) {
       nrm += A[i][k] * A[i][k];
     });
     R[k][k] = sqrt(nrm);

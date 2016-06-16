@@ -41,11 +41,11 @@ static void kernel_covariance(int m,
                               double mean[M]) {
 #pragma scop
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int j) {
-    RAJA::ReduceSum<RAJA::omp_reduce, double> mean_r { 0.0 };
+    mean[j] = 0.0;
     RAJA::forall<RAJA::simd_exec> (0, n, [=] (int i) {
-      mean_r += data[i][j];
+      mean[j] += data[i][j];
     });
-    mean[j] = mean_r / float_n;
+    mean[j] /= float_n;
   });
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, n },
@@ -59,11 +59,11 @@ static void kernel_covariance(int m,
     RAJA::RangeSegment { 0, m },
     [=] (int i, int j) {
       if (i < j) {
-        RAJA::ReduceSum<RAJA::omp_reduce, double> cov_r { 0.0 };
+        cov[i][j] = 0.0;
         RAJA::forall<RAJA::simd_exec> (0, n, [=] (int k) {
-          cov_r += data[k][i] * data[k][j];
+          cov[i][j] += data[k][i] * data[k][j];
         });
-        cov[i][j] = cov[j][i] = cov_r / (float_n - 1.0);
+        cov[i][j] = cov[j][i] = cov[i][j] / (float_n - 1.0);
       }
     }
   );

@@ -43,18 +43,18 @@ static void kernel_correlation(int m,
   double eps = 0.1;
 #pragma scop
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int j) {
-    RAJA::ReduceSum<RAJA::omp_reduce, double> c_mean { 0.0 };
+    mean[j] = 0.0;
     RAJA::forall<RAJA::simd_exec> (0, n, [=] (int i) {
-      c_mean += data[i][j];
+      mean[j] += data[i][j];
     });
-    mean[j] = c_mean / float_n;
+    mean[j] /= float_n;
   });
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int j) {
-    RAJA::ReduceSum<RAJA::omp_reduce, double> stddev_r { 0.0 };
+    stddev[j] = 0.0;
     RAJA::forall<RAJA::simd_exec> (0, n, [=] (int i) {
-      stddev_r += (data[i][j] - mean[j]) * (data[i][j] - mean[j]);
+      stddev[j] += (data[i][j] - mean[j]) * (data[i][j] - mean[j]);
     });
-    stddev[j] = sqrt (stddev_r / float_n);
+    stddev[j] = sqrt (stddev[j] / float_n);
     stddev[j] = (stddev[j] <= eps) ? 1.0 : stddev[j];
   });
   RAJA::forallN<Independent2DTiledVerbose<32,16>> (
@@ -70,11 +70,11 @@ static void kernel_correlation(int m,
     RAJA::RangeSegment { 1, m },
     [=] (int i, int j) {
       if (i < j) {
-        RAJA::ReduceSum<RAJA::omp_reduce, double> corr_r { 0.0 };
+        corr[i][j] = 0.0;
         RAJA::forall<RAJA::simd_exec> (0, n, [=] (int k) {
-            corr_r += data[k][i] * data[k][j];
+            corr[i][j] += data[k][i] * data[k][j];
         });
-        corr[j][i] = corr[i][j] = corr_r;
+        corr[j][i] = corr[i][j];
       }
     }
   );

@@ -35,14 +35,14 @@ static void kernel_durbin(int n, double r[N], double y[N]) {
   y[0] = -r[0];
   beta = 1.0;
   alpha = -r[0];
-  RAJA::forall<RAJA::seq_exec> (1, n, [=] (int k) mutable {
+  RAJA::forall<RAJA::seq_exec> (1, n, [=,&z] (int k) mutable {
     beta = (1 - alpha * alpha) * beta;
-    RAJA::ReduceSum<RAJA::omp_reduce, double> sum { 0.0 };
-    RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=] (int i) {
+    double sum { 0.0 };
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=,&sum,&z] (int i) {
       sum += r[k - i - 1] * y[i];
     });
     alpha = -(r[k] + sum) / beta;
-    RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=] (int i) mutable {
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=,&z] (int i) {
       z[i] = y[i] + alpha * y[k - i - 1];
     });
     RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=] (int i) {
