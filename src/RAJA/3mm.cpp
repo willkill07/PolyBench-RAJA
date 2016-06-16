@@ -79,33 +79,33 @@ static void kernel_3mm(int ni,
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nj },
     [=] (int i, int j) {
-      RAJA::ReduceSum <RAJA::omp_reduce, double> E_r { 0.0 };
+      double v { 0.0 };
       RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
-        E_r += A[i][k] * B[k][j];
+        v += A[i][k] * B[k][j];
       });
-      E[i][j] = E_r;
+      E[i][j] = v;
     }
   );
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, nj },
     RAJA::RangeSegment { 0, nl },
     [=] (int i, int j) {
-      RAJA::ReduceSum <RAJA::omp_reduce, double> F_r { 0.0 };
+      double v { 0.0 };
       RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
-        F_r += C[i][k] * D[k][j];
+        v += C[i][k] * D[k][j];
       });
-      F[i][j] = F_r;
+      F[i][j] = v;
     }
   );
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nl },
     [=] (int i, int j) {
-      RAJA::ReduceSum <RAJA::omp_reduce, double> G_r { 0.0 };
+      double v { 0.0 };
       RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
-        G_r += E[i][k] * F[k][j];
+        v += E[i][k] * F[k][j];
       });
-      G[i][j] = G_r;
+      G[i][j] = v;
     }
   );
 #pragma endscop

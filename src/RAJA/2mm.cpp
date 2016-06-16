@@ -81,22 +81,22 @@ static void kernel_2mm(int ni,
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nj },
     [=] (int i, int j) {
-      RAJA::ReduceSum<RAJA::omp_reduce, double> tmp_r { 0.0 };
+      double v { 0.0 };
       RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
-        tmp_r += alpha * A[i][k] * B[k][j];
+        v += alpha * A[i][k] * B[k][j];
       });
-      tmp[i][j] = tmp_r;
+      tmp[i][j] = v;
     }
   );
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nl },
     [=] (int i, int j) {
-      RAJA::ReduceSum<RAJA::omp_reduce, double> D_r { D[i][j] * beta };
+      double v { 0.0 };
       RAJA::forall <RAJA::simd_exec> (0, nk, [=] (int k) {
-        D_r += tmp[i][k] * C[k][j];
+        v += tmp[i][k] * C[k][j];
       });
-      D[i][j] = D_r;
+      D[i][j] = v;
     }
   );
 #pragma endscop

@@ -50,13 +50,18 @@ static void kernel_symm(int m,
                         double A[M][M],
                         double B[M][N]) {
 #pragma scop
-  RAJA::forallN<Independent2DTiled> (
+  RAJA::forallN<
+    RAJA::NestedPolicy<
+      RAJA::ExecList<RAJA::simd_exec,RAJA::omp_parallel_for_exec>,
+      RAJA::Tile<RAJA::TileList<RAJA::tile_fixed<16>,RAJA::tile_fixed<16> >,
+                 RAJA::Permute<RAJA::PERM_JI>>
+    >
+  > (
     RAJA::RangeSegment { 0, m },
     RAJA::RangeSegment { 0, n },
     [=] (int i, int j) {
-      double temp2 = 0;
-      RAJA::forall<RAJA::simd_exec> (0, i, [=] (int k) {
-        // TODO - Fix update to C
+      double temp2 { 0.0 };
+      RAJA::forall<RAJA::simd_exec> (0, i, [=] (int k) mutable {
         C[k][j] += alpha * B[i][j] * A[i][k];
         temp2 += B[k][j] * A[i][k];
       });
