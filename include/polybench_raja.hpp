@@ -23,7 +23,10 @@
 #define RAJA_ENABLE_NESTED 1
 #include <RAJA/RAJA.hxx>
 
-#include <hyper_array.hpp>
+#define ACC_1D(arr,s1,i1) (*(arr+(i1)))
+#define ACC_2D(arr,s1,s2,i1,i2) (*(arr+(s2)*(i1)+(i2)))
+#define ACC_3D(arr,s1,s2,s3,i1,i2,i3) (*(arr+(s3)*((s2)*(i1)+(i2))+(i3)))
+#define ACC_4D(arr,s1,s2,s3,s4,i1,i2,i3,i4) (*(arr+(s4)*((s3)*((s2)*(i1)+(i2))+(i3))+(i4)))
 
 using OMP_ParallelRegion = typename RAJA::NestedPolicy<
   RAJA::ExecList<
@@ -62,6 +65,8 @@ using Independent3D = typename RAJA::NestedPolicy<
   >,
   RAJA::OMP_Parallel<RAJA::Execute>
 >;
+
+
 
 template <size_t Loop1 = 32, size_t Loop2 = 16, typename Permutation = RAJA::PERM_IJ>
 using Independent2DTiledVerbose = typename RAJA::NestedPolicy<
@@ -113,11 +118,5 @@ extern void polybench_free_data(void* ptr);
 
 extern void polybench_flush_cache();
 extern void polybench_prepare_instruments();
-
-template <typename T> using Arr1D = hyper_array::array<T, 1>;
-template <typename T> using Arr2D = hyper_array::array<T, 2>;
-template <typename T> using Arr3D = hyper_array::array<T, 3>;
-template <typename T> using Arr4D = hyper_array::array<T, 4>;
-template <typename T> using Arr5D = hyper_array::array<T, 5>;
 
 #endif /* !POLYBENCH_RAJA_HPP */

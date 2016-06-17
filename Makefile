@@ -1,7 +1,7 @@
 RAJA_INSTALL_DIR := dist/RAJA
 CXX := clang++
 CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I./include -O3 -march=native
-CPPFLAGS := -std=c++11 -fopenmp
+CPPFLAGS := -std=c++11 -fopenmp -MMD -DEXTRALARGE_DATASET
 LDFLAGS := $(RAJA_INSTALL_DIR)/lib/libRAJA.a
 
 INSTALLPREFIX := dist/PolyBench
@@ -14,6 +14,8 @@ BINDIR := $(INSTALLPREFIX)/bin
 
 LIBSRC := $(SRCDIR)/polybench_raja.cpp
 SRC := $(wildcard $(SRCDIR)/*.cpp)
+DEPS := $(patsubst $(SRCDIR)%.cpp,$(OBJDIR)/%.d,$(SRC))
+
 SRC := $(filter-out $(LIBSRC),$(SRC))
 
 OBJ := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
@@ -43,3 +45,5 @@ $(LIB) : $(LIBOBJ)
 
 clean :
 	@-rm -vfr $(OBJDIR) $(BINDIR) $(LIBDIR)
+
+-include $(DEPS)
