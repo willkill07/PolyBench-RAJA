@@ -23,6 +23,8 @@
 #define RAJA_ENABLE_NESTED 1
 #include <RAJA/RAJA.hxx>
 
+#include <hyper_array.hpp>
+
 using OMP_ParallelRegion = typename RAJA::NestedPolicy<
   RAJA::ExecList<
     RAJA::seq_exec
@@ -111,5 +113,11 @@ extern void polybench_free_data(void* ptr);
 
 extern void polybench_flush_cache();
 extern void polybench_prepare_instruments();
+
+template <typename T> using Arr1D = hyper_array::array<T, 1>;
+template <typename T> using Arr2D = hyper_array::array<T, 2>;
+template <typename T> using Arr3D = hyper_array::array<T, 3>;
+template <typename T> using Arr4D = hyper_array::array<T, 4>;
+template <typename T> using Arr5D = hyper_array::array<T, 5>;
 
 #endif /* !POLYBENCH_RAJA_HPP */
