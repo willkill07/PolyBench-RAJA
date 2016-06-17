@@ -4,12 +4,13 @@ CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I./include -O3 -march=native
 CPPFLAGS := -std=c++11 -fopenmp
 LDFLAGS := $(RAJA_INSTALL_DIR)/lib/libRAJA.a
 
-SRCDIR := src
+INSTALLPREFIX := dist/PolyBench
+PREFIX := build/PolyBench
 
-PREFIX := dist/PolyBench
+SRCDIR := src
 OBJDIR := $(PREFIX)/obj
-LIBDIR := $(PREFIX)/lib
-BINDIR := $(PREFIX)/bin
+LIBDIR := $(INSTALLPREFIX)/lib
+BINDIR := $(INSTALLPREFIX)/bin
 
 LIBSRC := $(SRCDIR)/polybench_raja.cpp
 SRC := $(wildcard $(SRCDIR)/*.cpp)
