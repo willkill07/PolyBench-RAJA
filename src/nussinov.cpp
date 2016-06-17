@@ -1,10 +1,10 @@
 /* nussinov.c: this file is part of PolyBench/C */
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 /* Include polybench common header. */
-#include "polybench_raja.hpp"
+#include "PolyBenchRAJA.hpp"
 /* Include benchmark-specific header. */
 #include "nussinov.hpp"
 
@@ -13,17 +13,16 @@ typedef char base;
 #define match(b1, b2) (((b1) + (b2)) == 3 ? 1 : 0)
 #define max_score(s1, s2) ((s1 >= s2) ? s1 : s2)
 
-static void init_array(int n, base seq[N], int table[N][N]) {
-  int i, j;
-  for (i = 0; i < n; i++) {
-    seq[i] = (base)((i + 1) % 4);
-  }
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++)
-      table[i][j] = 0;
+static void init_array(int n, Arr1D<base>* seq, Arr2D<int>* table) {
+  RAJA::forall<RAJA::simd_exec>(0, n, [=](int i) {
+    seq->at(i) = (base)((i + 1) % 4);
+  });
+  RAJA::forallN<Independent2D>(RAJA::RangeSegment{0, n},
+                               RAJA::RangeSegment{0, n},
+                               [=](int i, int j) { table->at(i, j) = 0; });
 }
 
-static void print_array(int n, int table[N][N]) {
+static void print_array(int n, const Arr2D<int>* table) {
   int i, j;
   int t = 0;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
@@ -31,62 +30,49 @@ static void print_array(int n, int table[N][N]) {
   for (i = 0; i < n; i++) {
     for (j = i; j < n; j++) {
       if (t % 20 == 0) fprintf(stderr, "\n");
-      fprintf(stderr, "%d ", table[i][j]);
+      fprintf(stderr, "%d ", table->at(i, j));
       t++;
     }
   }
   fprintf(stderr, "\nend   dump: %s\n", "table");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
-# 62 "nussinov.c"
 
-static void kernel_nussinov(int n, base seq[N], int table[N][N]) {
-  int i, j, k;
+static void kernel_nussinov(int n, const Arr1D<base>* seq, Arr2D<int>* table) {
 #pragma scop
-  for (i = n - 1; i >= 0; i--) {
-    for (j = i + 1; j < n; j++) {
+  RAJA::forall<RAJA::seq_exec>(n - 1, -1, -1, [=](int i) {
+    RAJA::forall<RAJA::simd_exec>(i + 1, n, [=](int j) {
       if (j - 1 >= 0)
-        table[i][j] =
-            ((table[i][j] >= table[i][j - 1]) ? table[i][j] : table[i][j - 1]);
+        table->at(i, j) = std::max(table->at(i, j), table->at(i, j - 1));
       if (i + 1 < n)
-        table[i][j] =
-            ((table[i][j] >= table[i + 1][j]) ? table[i][j] : table[i + 1][j]);
-      if (j - 1 >= 0 && i + 1 < n) {
+        table->at(i, j) = std::max(table->at(i, j), table->at(i + i, j));
+      if (i < n - 1) {
         if (i < j - 1)
-          table[i][j] =
-              ((table[i][j]
-                >= table[i + 1][j - 1] + (((seq[i]) + (seq[j])) == 3 ? 1 : 0))
-                   ? table[i][j]
-                   : table[i + 1][j - 1]
-                         + (((seq[i]) + (seq[j])) == 3 ? 1 : 0));
+          table->at(i, j) = std::max(table->at(i, j),
+                                     table->at(i + 1, j - 1)
+                                         + ((seq->at(i) + seq->at(j)) == 3));
         else
-          table[i][j] =
-              ((table[i][j] >= table[i + 1][j - 1]) ? table[i][j]
-                                                    : table[i + 1][j - 1]);
+          table->at(i, j) = std::max(table->at(i, j), table->at(i + 1, j - 1));
       }
-      for (k = i + 1; k < j; k++) {
-        table[i][j] = ((table[i][j] >= table[i][k] + table[k + 1][j])
-                           ? table[i][j]
-                           : table[i][k] + table[k + 1][j]);
-      }
-    }
-  }
+      RAJA::forall<RAJA::simd_exec>(i + 1, j, [=](int k) {
+        table->at(i, j) =
+            std::max(table->at(i, j), table->at(i, k) + table->at(k + 1, j));
+      });
+    });
+  });
 #pragma endscop
 }
 
 int main(int argc, char** argv) {
   int n = N;
-  base(*seq)[N];
-  seq = (base(*)[N])polybench_alloc_data(N, sizeof(base));
-  int(*table)[N][N];
-  table = (int(*)[N][N])polybench_alloc_data((N) * (N), sizeof(int));
-  init_array(n, *seq, *table);
-  polybench_timer_start();
-  kernel_nussinov(n, *seq, *table);
-  polybench_timer_stop();
-  polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *table);
-  free((void*)seq);
-  free((void*)table);
+  Arr1D<base> seq{n};
+  Arr2D<int> table{n, n};
+
+  init_array(n, &seq, &table);
+  {
+    util::block_timer t{"NUSSINOV"};
+    kernel_nussinov(n, &seq, &table);
+  }
+  if (argc > 42) print_array(n, &table);
   return 0;
 }

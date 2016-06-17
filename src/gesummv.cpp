@@ -1,38 +1,37 @@
 /* gesummv.c: this file is part of PolyBench/C */
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 /* Include polybench common header. */
-#include "polybench_raja.hpp"
+#include "PolyBenchRAJA.hpp"
 /* Include benchmark-specific header. */
 #include "gesummv.hpp"
 
-
 static void init_array(int n,
-                       double *alpha,
-                       double *beta,
-                       double A[N][N],
-                       double B[N][N],
-                       double x[N]) {
+                       double* alpha,
+                       double* beta,
+                       Arr2D<double>* A,
+                       Arr2D<double>* B,
+                       Arr1D<double>* x) {
   *alpha = 1.5;
   *beta = 1.2;
-  RAJA::forall<RAJA::omp_parallel_for_exec>(0, n, [=] (int i) {
-    x[i] = (double)(i % n) / n;
-    RAJA::forall<RAJA::simd_exec>(0, n, [=] (int j) {
-      A[i][j] = (double)((i * j + 1) % n) / n;
-      B[i][j] = (double)((i * j + 2) % n) / n;
+  RAJA::forall<RAJA::omp_parallel_for_exec>(0, n, [=](int i) {
+    x->at(i) = (double)(i % n) / n;
+    RAJA::forall<RAJA::simd_exec>(0, n, [=](int j) {
+      A->at(i, j) = (double)((i * j + 1) % n) / n;
+      B->at(i, j) = (double)((i * j + 2) % n) / n;
     });
   });
 }
 
-static void print_array(int n, double y[N]) {
+static void print_array(int n, const Arr1D<double>* y) {
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "y");
   for (i = 0; i < n; i++) {
     if (i % 20 == 0) fprintf(stderr, "\n");
-    fprintf(stderr, "%0.2lf ", y[i]);
+    fprintf(stderr, "%0.2lf ", y->at(i));
   }
   fprintf(stderr, "\nend   dump: %s\n", "y");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
@@ -41,48 +40,36 @@ static void print_array(int n, double y[N]) {
 static void kernel_gesummv(int n,
                            double alpha,
                            double beta,
-                           double A[N][N],
-                           double B[N][N],
-                           double tmp[N],
-                           double x[N],
-                           double y[N]) {
+                           const Arr2D<double>* A,
+                           const Arr2D<double>* B,
+                           Arr1D<double>* tmp,
+                           const Arr1D<double>* x,
+                           Arr1D<double>* y) {
 #pragma scop
-  RAJA::forall<RAJA::omp_parallel_for_exec>(0, n, [=] (int i) {
-    tmp[i] = 0.0;
-    y[i] = 0.0;
-    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int j) {
-      tmp[i] += A[i][j] * x[j];
-      y[i] += B[i][j] * x[j];
+  RAJA::forall<RAJA::omp_parallel_for_exec>(0, n, [=](int i) {
+    tmp->at(i) = 0.0;
+    y->at(i) = 0.0;
+    RAJA::forall<RAJA::simd_exec>(0, n, [=](int j) {
+      tmp->at(i) += A->at(i, j) * x->at(j);
+      y->at(i) += B->at(i, j) * x->at(j);
     });
-    y[i] = alpha * tmp[i] + beta * y[i];
+    y->at(i) = alpha * tmp->at(i) + beta * y->at(i);
   });
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   int n = N;
   double alpha;
   double beta;
-  double(*A)[N][N];
-  A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
-  double(*B)[N][N];
-  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
-  double(*tmp)[N];
-  tmp = (double(*)[N])polybench_alloc_data(N, sizeof(double));
-  double(*x)[N];
-  x = (double(*)[N])polybench_alloc_data(N, sizeof(double));
-  double(*y)[N];
-  y = (double(*)[N])polybench_alloc_data(N, sizeof(double));
-  init_array(n, &alpha, &beta, *A, *B, *x);
-  polybench_timer_start();
-  kernel_gesummv(n, alpha, beta, *A, *B, *tmp, *x, *y);
-  polybench_timer_stop();
-  polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *y);
-  free((void *)A);
-  free((void *)B);
-  free((void *)tmp);
-  free((void *)x);
-  free((void *)y);
+  Arr2D<double> A{n, n}, B{n, n};
+  Arr1D<double> tmp{n}, x{n}, y{n};
+
+  init_array(n, &alpha, &beta, &A, &B, &x);
+  {
+    util::block_timer t{"GESUMMV"};
+    kernel_gesummv(n, alpha, beta, &A, &B, &tmp, &x, &y);
+  }
+  if (argc > 42) print_array(n, &y);
   return 0;
 }

@@ -1,33 +1,31 @@
 /* covariance.c: this file is part of PolyBench/C */
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 /* Include polybench common header. */
-#include "polybench_raja.hpp"
+#include "PolyBenchRAJA.hpp"
 /* Include benchmark-specific header. */
 #include "covariance.hpp"
 
-
-static void init_array(int m, int n, double* float_n, double data[N][M]) {
+static void init_array(int m, int n, double* float_n, Arr2D<double>* data) {
   *float_n = (double)n;
-  RAJA::forallN<Independent2DTiledVerbose<32,16>> (
-    RAJA::RangeSegment { 0, n },
-    RAJA::RangeSegment { 0, m },
-    [=] (int i, int j) {
-      data[i][j] = ((double)i * j) / m;
-    }
-  );
+  RAJA::forallN<Independent2DVerbose<32, 16>>(RAJA::RangeSegment{0, n},
+                                              RAJA::RangeSegment{0, m},
+                                              [=](int i, int j) {
+                                                data->at(i, j) =
+                                                    ((double)i * j) / m;
+                                              });
 }
 
-static void print_array(int m, double cov[M][M]) {
+static void print_array(int m, const Arr2D<double>* cov) {
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "cov");
   for (i = 0; i < m; i++)
     for (j = 0; j < m; j++) {
       if ((i * m + j) % 20 == 0) fprintf(stderr, "\n");
-      fprintf(stderr, "%0.2lf ", cov[i][j]);
+      fprintf(stderr, "%0.2lf ", cov->at(i, j));
     }
   fprintf(stderr, "\nend   dump: %s\n", "cov");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
@@ -36,37 +34,32 @@ static void print_array(int m, double cov[M][M]) {
 static void kernel_covariance(int m,
                               int n,
                               double float_n,
-                              double data[N][M],
-                              double cov[M][M],
-                              double mean[M]) {
+                              Arr2D<double>* data,
+                              Arr2D<double>* cov,
+                              Arr1D<double>* mean) {
 #pragma scop
-  RAJA::forall<RAJA::omp_parallel_for_exec> (0, m, [=] (int j) {
-    mean[j] = 0.0;
-    RAJA::forall<RAJA::simd_exec> (0, n, [=] (int i) {
-      mean[j] += data[i][j];
+  RAJA::forall<RAJA::omp_parallel_for_exec>(0, m, [=](int j) {
+    mean->at(j) = 0.0;
+    RAJA::forall<RAJA::simd_exec>(0, n, [=](int i) {
+      mean->at(j) += data->at(i, j);
     });
-    mean[j] /= float_n;
+    mean->at(j) /= float_n;
   });
-  RAJA::forallN<Independent2DTiled> (
-    RAJA::RangeSegment { 0, n },
-    RAJA::RangeSegment { 0, m },
-    [=] (int i, int j) {
-      data[i][j] -= mean[j];
-    }
-  );
-  RAJA::forallN<Independent2DTiled> (
-    RAJA::RangeSegment { 0, m },
-    RAJA::RangeSegment { 0, m },
-    [=] (int i, int j) {
-      if (i < j) {
-        cov[i][j] = 0.0;
-        RAJA::forall<RAJA::simd_exec> (0, n, [=] (int k) {
-          cov[i][j] += data[k][i] * data[k][j];
-        });
-        cov[i][j] = cov[j][i] = cov[i][j] / (float_n - 1.0);
-      }
-    }
-  );
+  RAJA::forallN<Independent2D>(RAJA::RangeSegment{0, n},
+                               RAJA::RangeSegment{0, m},
+                               [=](int i, int j) {
+                                 data->at(i, j) -= mean->at(j);
+                               });
+  RAJA::forallN<Independent2D>(
+      RAJA::RangeSegment{0, m}, RAJA::RangeSegment{0, m}, [=](int i, int j) {
+        if (i < j) {
+          cov->at(i, j) = 0.0;
+          RAJA::forall<RAJA::simd_exec>(0, n, [=](int k) {
+            cov->at(i, j) += data->at(k, i) * data->at(k, j);
+          });
+          cov->at(i, j) = cov->at(j, i) = cov->at(i, j) / (float_n - 1.0);
+        }
+      });
 #pragma endscop
 }
 
@@ -74,20 +67,15 @@ int main(int argc, char** argv) {
   int n = N;
   int m = M;
   double float_n;
-  double(*data)[N][M];
-  data = (double(*)[N][M])polybench_alloc_data((N) * (M), sizeof(double));
-  double(*cov)[M][M];
-  cov = (double(*)[M][M])polybench_alloc_data((M) * (M), sizeof(double));
-  double(*mean)[M];
-  mean = (double(*)[M])polybench_alloc_data(M, sizeof(double));
-  init_array(m, n, &float_n, *data);
-  polybench_timer_start();
-  kernel_covariance(m, n, float_n, *data, *cov, *mean);
-  polybench_timer_stop();
-  polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(m, *cov);
-  free((void*)data);
-  free((void*)cov);
-  free((void*)mean);
+  Arr2D<double> data{n, m};
+  Arr2D<double> cov{m, m};
+  Arr1D<double> mean{m};
+
+  init_array(m, n, &float_n, &data);
+  {
+    util::block_timer t{"COVARIANCE"};
+    kernel_covariance(m, n, float_n, &data, &cov, &mean);
+  }
+  if (argc > 42) print_array(m, &cov);
   return 0;
 }

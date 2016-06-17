@@ -1,5 +1,3 @@
--I./src/C
--I./src/RAJA
--I./build/include
--I./RAJA/include
+-I./dist/RAJA/include
+-I./include
 -std=c++11
