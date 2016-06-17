@@ -4,23 +4,41 @@ CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I./include -O3 -march=native
 CPPFLAGS := -std=c++11 -fopenmp
 LDFLAGS := $(RAJA_INSTALL_DIR)/lib/libRAJA.a
 
-SRC := $(wildcard src/*.cpp)
-OBJ := $(patsubst src/%.cpp,obj/%.o,$(SRC))
-SRC := $(filter-out src/polybench_raja.cpp,$(SRC))
-BIN := $(patsubst src/%.cpp,bin/%,$(SRC))
+SRCDIR := src
+
+PREFIX := dist/PolyBench
+OBJDIR := $(PREFIX)/obj
+LIBDIR := $(PREFIX)/lib
+BINDIR := $(PREFIX)/bin
+
+LIBSRC := $(SRCDIR)/polybench_raja.cpp
+SRC := $(wildcard $(SRCDIR)/*.cpp)
+SRC := $(filter-out $(LIBSRC),$(SRC))
+
+OBJ := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
+LIBOBJ := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(LIBSRC))
+
+LIB := $(LIBDIR)/libPolyBench.a
+BIN := $(patsubst $(SRCDIR)/%.cpp,$(BINDIR)/%,$(SRC))
 
 .PHONY: all clean setup
 
 all : setup $(BIN)
 
 setup :
-	-@mkdir -p bin obj
+	-@mkdir -p $(BINDIR) $(OBJDIR) $(LIBDIR)
 
-$(BIN) : bin/% : obj/%.o obj/polybench_raja.o
+$(BIN) : $(BINDIR)/% : $(OBJDIR)/%.o $(LIB)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o $@
 
-$(OBJ) : obj/%.o : src/%.cpp
+$(OBJ) : $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $< -c -o $@
 
+$(LIBOBJ) : $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $< -c -o $@
+
+$(LIB) : $(LIBOBJ)
+	$(AR) $(ARFLAGS) $@ $<
+
 clean :
-	@-rm -vfr $(OBJ) $(BIN) obj bin
+	@-rm -vfr $(OBJDIR) $(BINDIR) $(LIBDIR)
