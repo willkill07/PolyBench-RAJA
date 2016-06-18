@@ -14,51 +14,58 @@ static void init_array(int ni,
                        int nl,
                        double* alpha,
                        double* beta,
-                       double* __restrict__ A,
-                       double* __restrict__ B,
-                       double* __restrict__ C,
-                       double* __restrict__ D) {
+                       Arr2D<double> A,
+                       Arr2D<double> B,
+                       Arr2D<double> C,
+                       Arr2D<double> D) {
   *alpha = 1.5;
   *beta = 1.2;
 
+  std::cerr << "INIT A" << std::endl;
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nk },
-    [=] (int i, int k) {
-      ACC_2D(A,ni,nk,i,k) = (double)((i * k + 1) % ni) / ni;
+    [=,&A] (int i, int k) {
+      A(i,k) = (double)((i * k + 1) % ni) / ni;
     }
   );
+
+  std::cerr << "INIT B" << std::endl;
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, nk },
     RAJA::RangeSegment { 0, nj },
-    [=] (int k, int j) {
-      ACC_2D(B,nk,nj,k,j) = (double)(k * (j + 1) % nj) / nj;
+    [=,&B] (int k, int j) {
+      B(k,j) = (double)(k * (j + 1) % nj) / nj;
     }
   );
+
+  std::cerr << "INIT C" << std::endl;
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, nj },
     RAJA::RangeSegment { 0, nl },
-    [=] (int j, int l) {
-      ACC_2D(C,nj,nl,j,l) = (double)((j * (l + 3) + 1) % nl) / nl;
+    [=,&C] (int j, int l) {
+      C(j,l) = (double)((j * (l + 3) + 1) % nl) / nl;
     }
   );
+
+  std::cerr << "INIT D" << std::endl;
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nl },
-    [=] (int i, int l) {
-      ACC_2D(D,ni,nl,i,l) = (double)(i * (l + 2) % nk) / nk;
+    [=,&D] (int i, int l) {
+      D(i,l) = (double)(i * (l + 2) % nk) / nk;
     }
   );
 }
 
-static void print_array(int ni, int nl, const double* D) {
+static void print_array(int ni, int nl, const Arr2D<double>& D) {
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "D");
   for (i = 0; i < ni; i++)
     for (j = 0; j < nl; j++) {
       if ((i * ni + j) % 20 == 0) fprintf(stderr, "\n");
-      fprintf(stderr, "%0.2lf ", ACC_2D(D,ni,nl,i,j));
+      fprintf(stderr, "%0.2lf ", D(i,j));
     }
   fprintf(stderr, "\nend   dump: %s\n", "D");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
@@ -70,51 +77,54 @@ static void kernel_2mm(int ni,
                        int nl,
                        double alpha,
                        double beta,
-                       double* __restrict__ tmp,
-                       const double* __restrict__ A,
-                       const double* __restrict__ B,
-                       const double* __restrict__ C,
-                       double* D) {
+                       Arr2D<double>& tmp,
+                       const Arr2D<double>& A,
+                       const Arr2D<double>& B,
+                       const Arr2D<double>& C,
+                       Arr2D<double>& D) {
 #pragma scop
-  RAJA::forallN <Independent2DTiled> (
+  std::cerr << "Kernel A" << std::endl;
+
+  using ExecPolicy = RAJA::NestedPolicy<
+    RAJA::ExecList<
+      RAJA::omp_collapse_nowait_exec,RAJA::omp_collapse_nowait_exec,RAJA::simd_exec
+    >, RAJA::Tile<
+      RAJA::TileList<RAJA::tile_fixed<8>,RAJA::tile_fixed<8>,RAJA::tile_fixed<8>
+    >, RAJA::OMP_Parallel<RAJA::Permute<RAJA::PERM_IJK> > > >;
+
+  RAJA::forallN <ExecPolicy> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nj },
-    [=] (int i, int j) {
-      double t { 0.0 };
-      RAJA::forall <RAJA::simd_exec> (0, nk, [=,&t] (int k) {
-        t += alpha * ACC_2D(A,ni,nk,i,k) * ACC_2D(B,nk,nj,k,j);
-      });
-      ACC_2D(tmp,ni,nj,i,j) = t;
+    RAJA::RangeSegment { 0, nk },
+    [&] (int i, int j, int k) {
+      std::cerr << i << ',' << j << ',' << k << std::endl;
+      tmp(i,j) += alpha * A(i,k) * B(k,j);
     }
   );
-  RAJA::forallN <Independent2DTiled> (
+  RAJA::forallN <ExecPolicy> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nl },
-    [=] (int i, int l) {
-      double t { 0.0 };
-      RAJA::forall <RAJA::simd_exec> (0, nj, [=,&t] (int j) {
-        t += alpha * ACC_2D(tmp,ni,nj,i,j) * ACC_2D(C,nj,nl,j,l);
-      });
-      ACC_2D(D,ni,nl,i,l) = t;
+    RAJA::RangeSegment { 0, nj },
+    [&] (int i, int l, int j) {
+      D(i,l) += alpha * tmp(i,j) * C(j,l);
     }
   );
 #pragma endscop
 }
 
 int main(int argc, char **argv) {
-  unsigned long ni = NI;
-  unsigned long nj = NJ;
-  unsigned long nk = NK;
-  unsigned long nl = NL;
+  int ni = NI;
+  int nj = NJ;
+  int nk = NK;
+  int nl = NL;
   double alpha;
   double beta;
 
-  double *A, *B, *C, *D, *tmp;
-  A = (double*)polybench_alloc_data(ni * nk, sizeof(double));
-  B = (double*)polybench_alloc_data(nk * nj, sizeof(double));
-  C = (double*)polybench_alloc_data(nj * nl, sizeof(double));
-  D = (double*)polybench_alloc_data(ni * nl, sizeof(double));
-  tmp = (double*)polybench_alloc_data(ni * nj, sizeof(double));
+  Arr2D<double> A { ni, nk };
+  Arr2D<double> B { nk, nj };
+  Arr2D<double> C { nj, nl };
+  Arr2D<double> D { ni, nl };
+  Arr2D<double> tmp { ni, nj };
 
   init_array(ni, nj, nk, nl, &alpha, &beta, A, B, C, D);
   polybench_timer_start();
@@ -122,12 +132,5 @@ int main(int argc, char **argv) {
   polybench_timer_stop();
   polybench_timer_print();
   if (argc > 42 && !strcmp(argv[0], "")) print_array(ni, nl, D);
-
-  free (tmp);
-  free (A);
-  free (B);
-  free (C);
-  free (D);
-
   return 0;
 }

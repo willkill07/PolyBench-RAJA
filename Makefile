@@ -1,6 +1,7 @@
 RAJA_INSTALL_DIR := dist/RAJA
 CXX := clang++
-CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I./include -O3 -march=native
+OPTS ?= -O3 -march-native
+CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I./include $(OPTS)
 CPPFLAGS := -std=c++11 -fopenmp -MMD -DEXTRALARGE_DATASET
 LDFLAGS := $(RAJA_INSTALL_DIR)/lib/libRAJA.a
 
