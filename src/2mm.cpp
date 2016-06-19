@@ -21,38 +21,34 @@ static void init_array(int ni,
   *alpha = 1.5;
   *beta = 1.2;
 
-  std::cerr << "INIT A" << std::endl;
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nk },
-    [=,&A] (int i, int k) {
+    [&] (int i, int k) {
       A(i,k) = (double)((i * k + 1) % ni) / ni;
     }
   );
 
-  std::cerr << "INIT B" << std::endl;
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, nk },
     RAJA::RangeSegment { 0, nj },
-    [=,&B] (int k, int j) {
+    [&] (int k, int j) {
       B(k,j) = (double)(k * (j + 1) % nj) / nj;
     }
   );
 
-  std::cerr << "INIT C" << std::endl;
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, nj },
     RAJA::RangeSegment { 0, nl },
-    [=,&C] (int j, int l) {
+    [&] (int j, int l) {
       C(j,l) = (double)((j * (l + 3) + 1) % nl) / nl;
     }
   );
 
-  std::cerr << "INIT D" << std::endl;
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nl },
-    [=,&D] (int i, int l) {
+    [&] (int i, int l) {
       D(i,l) = (double)(i * (l + 2) % nk) / nk;
     }
   );
@@ -83,13 +79,11 @@ static void kernel_2mm(int ni,
                        const Arr2D<double>& C,
                        Arr2D<double>& D) {
 #pragma scop
-  std::cerr << "Kernel A" << std::endl;
-
   using ExecPolicy = RAJA::NestedPolicy<
     RAJA::ExecList<
       RAJA::omp_collapse_nowait_exec,RAJA::omp_collapse_nowait_exec,RAJA::simd_exec
     >, RAJA::Tile<
-      RAJA::TileList<RAJA::tile_fixed<8>,RAJA::tile_fixed<8>,RAJA::tile_fixed<8>
+      RAJA::TileList<RAJA::tile_fixed<16>,RAJA::tile_fixed<16>,RAJA::tile_none
     >, RAJA::OMP_Parallel<RAJA::Permute<RAJA::PERM_IJK> > > >;
 
   RAJA::forallN <ExecPolicy> (
@@ -97,7 +91,6 @@ static void kernel_2mm(int ni,
     RAJA::RangeSegment { 0, nj },
     RAJA::RangeSegment { 0, nk },
     [&] (int i, int j, int k) {
-      std::cerr << i << ',' << j << ',' << k << std::endl;
       tmp(i,j) += alpha * A(i,k) * B(k,j);
     }
   );
@@ -132,5 +125,12 @@ int main(int argc, char **argv) {
   polybench_timer_stop();
   polybench_timer_print();
   if (argc > 42 && !strcmp(argv[0], "")) print_array(ni, nl, D);
+
+  A.clear();
+  B.clear();
+  C.clear();
+  D.clear();
+  tmp.clear();
+
   return 0;
 }

@@ -23,11 +23,6 @@
 #define RAJA_ENABLE_NESTED 1
 #include <RAJA/RAJA.hxx>
 
-#define ACC_1D(arr,s1,i1) (*(arr+(i1)))
-#define ACC_2D(arr,s1,s2,i1,i2) (*(arr+(s2)*(i1)+(i2)))
-#define ACC_3D(arr,s1,s2,s3,i1,i2,i3) (*(arr+(s3)*((s2)*(i1)+(i2))+(i3)))
-#define ACC_4D(arr,s1,s2,s3,s4,i1,i2,i3,i4) (*(arr+(s4)*((s3)*((s2)*(i1)+(i2))+(i3))+(i4)))
-
 template <typename T>
 using Ptr = T* __restrict__;
 
@@ -131,42 +126,78 @@ extern void polybench_prepare_instruments();
 
 template <typename T, size_t N>
 class MultiDimArray {
-  std::array<size_t,N> extents;
+  const std::array<size_t,N> extents;
+  const std::array<size_t,N> coeffs;
   Ptr<T> data;
 
-  Ptr<T> calculateSize () {
+  Ptr<T> calculateSize () const noexcept {
     size_t allocSize { 1 };
     for (int i { 0 }; i < N; ++i)
       allocSize *= extents[i];
     return static_cast <Ptr<T>> (polybench_alloc_data(allocSize, sizeof(T)));
   }
 
-  size_t computeOffset (const std::array <size_t, N> &loc) const {
-    size_t offset { loc[0] };
-    for (int i = 1; i < N; ++i)
-      offset = offset * extents[i] + loc[i];
-    return offset;
+  std::array<size_t,N> calculateCoeffs () const noexcept {
+    std::array<size_t, N> res;
+    size_t off { 1 };
+    for (int i = N - 1; i >= 0; --i) {
+      res [i] = off;
+      off *= extents [i];
+    }
+    return res;
   }
 
+  template <size_t Dim, typename Length, typename... Lengths>
+  size_t computeOffset (Length curr, Lengths ... rest) const noexcept {
+    return computeOffset<Dim+1> (rest ...) + extents[Dim] * curr;
+  }
+
+  template <size_t Dim, typename Length>
+  size_t computeOffset (Length curr) const noexcept {
+    return 0;
+  }
+
+  // size_t computeOffset (const std::array <size_t, N> &loc) const {
+  //   size_t offset { loc[0] };
+  //   for (int i = 1; i < N; ++i)
+  //     offset = offset * extents[i] + loc[i];
+  //   return offset;
+  // }
+
 public:
+
+  MultiDimArray () = delete;
+  ~MultiDimArray () = default;
 
   template <typename... DimensionLengths>
   MultiDimArray (DimensionLengths ... lengths) noexcept
     : extents {{static_cast<size_t>(lengths)...}},
+      coeffs { calculateCoeffs () },
       data { calculateSize () } { }
 
-  ~MultiDimArray () {
+  MultiDimArray<T,N> (const MultiDimArray<T,N> & rhs) noexcept
+  : extents { rhs.extents },
+    coeffs { rhs.coeffs },
+    data { rhs.data } { }
+
+  MultiDimArray<T,N> (MultiDimArray<T,N> && rhs) noexcept
+  : extents { std::move(rhs.extents) },
+    coeffs { std::move(rhs.coeffs) },
+    data { rhs.data } { }
+
+  void clear() {
     free (data);
   }
 
   template <typename... Ind>
-  inline T& operator()(Ind&& ... indices) noexcept {
-    return data [computeOffset({{static_cast<size_t>(std::forward<Ind>(indices))...}})];
+  inline T& operator()(Ind... indices) noexcept {
+    return data [computeOffset<0>(indices...)];
   }
 
   template <typename... Ind>
-  inline const T& operator()(Ind&& ... indices) const noexcept {
-    return data [computeOffset({{static_cast<size_t>(std::forward<Ind>(indices))...}})];
+  inline const T& operator()(Ind... indices) const noexcept {
+    return data [computeOffset<0>(indices...)];
+    //return data [computeOffset({{static_cast<size_t>(std::forward<Ind>(indices))...}})];
   }
 };
 
