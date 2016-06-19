@@ -130,14 +130,14 @@ class MultiDimArray {
   const std::array<size_t,N> coeffs;
   Ptr<T> data;
 
-  Ptr<T> calculateSize () const noexcept {
+  inline Ptr<T> calculateSize () const noexcept {
     size_t allocSize { 1 };
     for (int i { 0 }; i < N; ++i)
       allocSize *= extents[i];
     return static_cast <Ptr<T>> (polybench_alloc_data(allocSize, sizeof(T)));
   }
 
-  std::array<size_t,N> calculateCoeffs () const noexcept {
+  inline std::array<size_t,N> calculateCoeffs () const noexcept {
     std::array<size_t, N> res;
     size_t off { 1 };
     for (int i = N - 1; i >= 0; --i) {
@@ -148,21 +148,14 @@ class MultiDimArray {
   }
 
   template <size_t Dim, typename Length, typename... Lengths>
-  size_t computeOffset (Length curr, Lengths ... rest) const noexcept {
+  inline size_t computeOffset (Length curr, Lengths ... rest) const noexcept {
     return computeOffset<Dim+1> (rest ...) + extents[Dim] * curr;
   }
 
   template <size_t Dim, typename Length>
-  size_t computeOffset (Length curr) const noexcept {
+  inline size_t computeOffset (Length curr) const noexcept {
     return 0;
   }
-
-  // size_t computeOffset (const std::array <size_t, N> &loc) const {
-  //   size_t offset { loc[0] };
-  //   for (int i = 1; i < N; ++i)
-  //     offset = offset * extents[i] + loc[i];
-  //   return offset;
-  // }
 
 public:
 
@@ -185,7 +178,7 @@ public:
     coeffs { std::move(rhs.coeffs) },
     data { rhs.data } { }
 
-  void clear() {
+  inline void clear() {
     free (data);
   }
 
@@ -197,7 +190,6 @@ public:
   template <typename... Ind>
   inline const T& operator()(Ind... indices) const noexcept {
     return data [computeOffset<0>(indices...)];
-    //return data [computeOffset({{static_cast<size_t>(std::forward<Ind>(indices))...}})];
   }
 };
 
