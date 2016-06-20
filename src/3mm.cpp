@@ -113,7 +113,6 @@ int main(int argc, char** argv) {
   int nk = NK;
   int nl = NL;
   int nm = NM;
-
   Arr2D<double> E { ni, nj };
   Arr2D<double> A { ni, nk };
   Arr2D<double> B { nk, nj };
@@ -121,19 +120,13 @@ int main(int argc, char** argv) {
   Arr2D<double> C { nj, nm };
   Arr2D<double> D { nm, nl };
   Arr2D<double> G { ni, nl };
-  init_array(ni, nj, nk, nl, nm, &A, &B, &C, &D);
-  polybench_timer_start();
-  kernel_3mm(ni, nj, nk, nl, nm, &E, &A, &B, &F, &C, &D, &G);
-  polybench_timer_stop();
-  polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(ni, nl, &G);
-  E.clear();
-  A.clear();
-  B.clear();
-  F.clear();
-  C.clear();
-  D.clear();
-  G.clear();
 
+  init_array(ni, nj, nk, nl, nm, &A, &B, &C, &D);
+  {
+    util::block_timer t { "3MM" };
+    kernel_3mm(ni, nj, nk, nl, nm, &E, &A, &B, &F, &C, &D, &G);
+  }
+  if (argc > 42)
+    print_array(ni, nl, &G);
   return 0;
 }

@@ -4,7 +4,7 @@ OPTS ?= -O3 -march=native
 CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I./include $(OPTS)
 CPPFLAGS := -std=c++11 -fopenmp -MMD -DEXTRALARGE_DATASET
 #CPPFLAGS := -std=c++11 -fopenmp -MMD -DMINI_DATASET
-LDFLAGS := $(RAJA_INSTALL_DIR)/lib/libRAJA.a
+LDFLAGS := $(RAJA_INSTALL_DIR)/lib/libRAJA.a -lrt
 
 INSTALLPREFIX := dist/PolyBench
 PREFIX := build/PolyBench

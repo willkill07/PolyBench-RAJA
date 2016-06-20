@@ -112,7 +112,6 @@ int main(int argc, char **argv) {
   int nl = NL;
   double alpha;
   double beta;
-
   Arr2D<double> A { ni, nk };
   Arr2D<double> B { nk, nj };
   Arr2D<double> C { nj, nl };
@@ -120,17 +119,11 @@ int main(int argc, char **argv) {
   Arr2D<double> tmp { ni, nj };
 
   init_array(ni, nj, nk, nl, &alpha, &beta, &A, &B, &C, &D);
-  polybench_timer_start();
-  kernel_2mm(ni, nj, nk, nl, alpha, beta, &tmp, &A, &B, &C, &D);
-  polybench_timer_stop();
-  polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(ni, nl, &D);
-
-  A.clear();
-  B.clear();
-  C.clear();
-  D.clear();
-  tmp.clear();
-
+  {
+    util::block_timer t { "2MM" };
+    kernel_2mm(ni, nj, nk, nl, alpha, beta, &tmp, &A, &B, &C, &D);
+  }
+  if (argc > 42)
+    print_array(ni, nl, &D);
   return 0;
 }

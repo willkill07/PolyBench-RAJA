@@ -3,7 +3,18 @@
 
 #include <cinttypes>
 
-extern void* aligned_malloc(std::size_t size, std::size_t alignment);
-extern void aligned_free (void* p);
+namespace mem {
+
+  struct AlignedAllocator {
+    void* operator()(::std::size_t size, ::std::size_t alignment);
+  };
+
+  struct AlignedDeleter {
+    void operator()(void* p);
+  };
+
+  extern AlignedAllocator defaultAllocator;
+  extern AlignedDeleter defaultDeleter;
+}
 
 #endif

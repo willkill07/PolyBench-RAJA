@@ -10,7 +10,6 @@
 
 
 static void init_array(int n, Arr2D<double>* u) {
-  int i, j;
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, n },
@@ -113,12 +112,17 @@ static void kernel_adi(int tsteps,
 int main(int argc, char** argv) {
   int n = N;
   int tsteps = TSTEPS;
-  Arr2D<double> u { n, n }, v { n, n }, p { n, n }, q { n, n };
+  Arr2D<double> u { n, n };
+  Arr2D<double> v { n, n };
+  Arr2D<double> p { n, n };
+  Arr2D<double> q { n, n };
+
   init_array(n, &u);
-  polybench_timer_start();
-  kernel_adi(tsteps, n, &u, &v, &p, &q);
-  polybench_timer_stop();
-  polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, &u);
+  {
+    util::block_timer t { "ADI" };
+    kernel_adi(tsteps, n, &u, &v, &p, &q);
+  }
+  if (argc > 42)
+    print_array(n, &u);
   return 0;
 }

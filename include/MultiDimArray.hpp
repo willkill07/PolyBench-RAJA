@@ -13,18 +13,22 @@ using Ptr = T* __restrict__;
 template <typename T>
 using CPtr = const Ptr<T>;
 
+template <typename T>
+using ManagedPtr = std::unique_ptr <T, mem::AlignedDeleter>;
+
 template <typename T, size_t N>
 class MultiDimArray {
 
   const std::array<size_t,N> extents;
   const std::array<size_t,N> coeffs;
+  ManagedPtr<T> managedData;
   Ptr<T> rawData;
 
   inline Ptr<T> allocData () const noexcept {
     size_t allocSize { 1 };
     for (int i { 0 }; i < N; ++i)
       allocSize *= extents[i];
-    return static_cast <Ptr<T>> (aligned_malloc(allocSize * sizeof (T), 1024));
+    return static_cast <Ptr<T>> (mem::defaultAllocator (allocSize * sizeof (T), 1024));
   }
 
   inline std::array<size_t,N> calculateCoeffs () const noexcept {
@@ -55,21 +59,20 @@ public:
   MultiDimArray<T,N> (DimensionLengths ... lengths) noexcept
     : extents {{static_cast<size_t>(lengths)...}},
       coeffs { calculateCoeffs () },
-      rawData { allocData () } { }
+      managedData { allocData(), mem::defaultDeleter },
+      rawData { managedData.get() } { }
 
   MultiDimArray<T,N> (const MultiDimArray<T,N> & rhs) noexcept
   : extents { rhs.extents },
     coeffs { rhs.coeffs },
+    managedData { nullptr },
     rawData { rhs.rawData } { }
 
   MultiDimArray<T,N> (MultiDimArray<T,N> && rhs) noexcept
   : extents { std::move(rhs.extents) },
     coeffs { std::move(rhs.coeffs) },
+    managedData { nullptr },
     rawData { rhs.rawData } { }
-
-  inline void clear() {
-    aligned_free (rawData);
-  }
 
   inline void swap (MultiDimArray<T,N> &rhs) noexcept {
     using std::swap;
