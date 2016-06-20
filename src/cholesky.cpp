@@ -13,7 +13,7 @@ static void init_array(int n, Arr2D<double>* A) {
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, n },
     [=] (int i, int j) {
-      A->at(i, j) = (j <= j) ? ((double)(-j % n) / n + 1) : (i == j);
+      A->at(i, j) = (j <= i) ? ((double)(-j % n) / n + 1) : (i == j);
     }
   );
   Arr2D<double> _B { n, n };
