@@ -14,54 +14,54 @@ static void init_array(int ni,
                        int nl,
                        double* alpha,
                        double* beta,
-                       Arr2D<double> A,
-                       Arr2D<double> B,
-                       Arr2D<double> C,
-                       Arr2D<double> D) {
+                       Arr2D<double>* A,
+                       Arr2D<double>* B,
+                       Arr2D<double>* C,
+                       Arr2D<double>* D) {
   *alpha = 1.5;
   *beta = 1.2;
 
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nk },
-    [&] (int i, int k) {
-      A(i,k) = (double)((i * k + 1) % ni) / ni;
+    [=] (int i, int k) {
+      A->at(i,k) = (double)((i * k + 1) % ni) / ni;
     }
   );
 
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, nk },
     RAJA::RangeSegment { 0, nj },
-    [&] (int k, int j) {
-      B(k,j) = (double)(k * (j + 1) % nj) / nj;
+    [=] (int k, int j) {
+      B->at(k,j) = (double)(k * (j + 1) % nj) / nj;
     }
   );
 
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, nj },
     RAJA::RangeSegment { 0, nl },
-    [&] (int j, int l) {
-      C(j,l) = (double)((j * (l + 3) + 1) % nl) / nl;
+    [=] (int j, int l) {
+      C->at(j,l) = (double)((j * (l + 3) + 1) % nl) / nl;
     }
   );
 
   RAJA::forallN <Independent2DTiled> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nl },
-    [&] (int i, int l) {
-      D(i,l) = (double)(i * (l + 2) % nk) / nk;
+    [=] (int i, int l) {
+      D->at(i,l) = (double)(i * (l + 2) % nk) / nk;
     }
   );
 }
 
-static void print_array(int ni, int nl, const Arr2D<double>& D) {
+static void print_array(int ni, int nl, const Arr2D<double>* D) {
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "D");
   for (i = 0; i < ni; i++)
     for (j = 0; j < nl; j++) {
       if ((i * ni + j) % 20 == 0) fprintf(stderr, "\n");
-      fprintf(stderr, "%0.2lf ", D(i,j));
+      fprintf(stderr, "%0.2lf ", D->at(i,j));
     }
   fprintf(stderr, "\nend   dump: %s\n", "D");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
@@ -73,11 +73,11 @@ static void kernel_2mm(int ni,
                        int nl,
                        double alpha,
                        double beta,
-                       Arr2D<double>& tmp,
-                       const Arr2D<double>& A,
-                       const Arr2D<double>& B,
-                       const Arr2D<double>& C,
-                       Arr2D<double>& D) {
+                       Arr2D<double>* tmp,
+                       const Arr2D<double>* A,
+                       const Arr2D<double>* B,
+                       const Arr2D<double>* C,
+                       Arr2D<double>* D) {
 #pragma scop
   using ExecPolicy = RAJA::NestedPolicy<
     RAJA::ExecList<
@@ -90,16 +90,16 @@ static void kernel_2mm(int ni,
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nj },
     RAJA::RangeSegment { 0, nk },
-    [&] (int i, int j, int k) {
-      tmp(i,j) += alpha * A(i,k) * B(k,j);
+    [=] (int i, int j, int k) {
+      tmp->at(i,j) += alpha * A->at(i,k) * B->at(k,j);
     }
   );
   RAJA::forallN <ExecPolicy> (
     RAJA::RangeSegment { 0, ni },
     RAJA::RangeSegment { 0, nl },
     RAJA::RangeSegment { 0, nj },
-    [&] (int i, int l, int j) {
-      D(i,l) += alpha * tmp(i,j) * C(j,l);
+    [=] (int i, int l, int j) {
+      D->at(i,l) += alpha * tmp->at(i,j) * C->at(j,l);
     }
   );
 #pragma endscop
@@ -119,18 +119,11 @@ int main(int argc, char **argv) {
   Arr2D<double> D { ni, nl };
   Arr2D<double> tmp { ni, nj };
 
-  init_array(ni, nj, nk, nl, &alpha, &beta, A, B, C, D);
+  init_array(ni, nj, nk, nl, &alpha, &beta, &A, &B, &C, &D);
   polybench_timer_start();
-  kernel_2mm(ni, nj, nk, nl, alpha, beta, tmp, A, B, C, D);
+  kernel_2mm(ni, nj, nk, nl, alpha, beta, &tmp, &A, &B, &C, &D);
   polybench_timer_stop();
   polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(ni, nl, D);
-
-  A.clear();
-  B.clear();
-  C.clear();
-  D.clear();
-  tmp.clear();
-
+  if (argc > 42 && !strcmp(argv[0], "")) print_array(ni, nl, &D);
   return 0;
 }

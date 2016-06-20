@@ -101,13 +101,3 @@ void polybench_timer_print() {
 #endif
 #endif
 }
-
-void polybench_free_data(void* ptr) {
-  free(ptr);
-}
-
-void* polybench_alloc_data (unsigned long long int n, int elt_size) {
-  void* data;
-  posix_memalign (&data, POLYBENCH_CACHE_LINE_SIZE_B, elt_size * n);
-  return data;
-}

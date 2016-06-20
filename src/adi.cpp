@@ -9,25 +9,25 @@
 #include "adi.hpp"
 
 
-static void init_array(int n, Arr2D<double> u) {
+static void init_array(int n, Arr2D<double>* u) {
   int i, j;
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, n },
-    [&] (int i, int j) {
-      u(i,j) = (double)(i + n - j) / n;
+    [=] (int i, int j) {
+      u->at(i,j) = (double)(i + n - j) / n;
     }
   );
 }
 
-static void print_array(int n, Arr2D<double> u) {
+static void print_array(int n, Arr2D<double>* u) {
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "u");
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++) {
       if ((i * n + j) % 20 == 0) fprintf(stderr, "\n");
-      fprintf(stderr, "%0.2lf ", u(i, j));
+      fprintf(stderr, "%0.2lf ", u->at(i, j));
     }
   fprintf(stderr, "\nend   dump: %s\n", "u");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
@@ -35,10 +35,10 @@ static void print_array(int n, Arr2D<double> u) {
 
 static void kernel_adi(int tsteps,
                        int n,
-                       Arr2D<double> u,
-                       Arr2D<double> v,
-                       Arr2D<double> p,
-                       Arr2D<double> q) {
+                       Arr2D<double>* u,
+                       Arr2D<double>* v,
+                       Arr2D<double>* p,
+                       Arr2D<double>* q) {
   double DX, DY, DT;
   double B1, B2;
   double mul1, mul2;
@@ -57,53 +57,53 @@ static void kernel_adi(int tsteps,
   d = -mul2 / 2.0;
   e = 1.0 + mul2;
   f = d;
-  RAJA::forall<RAJA::seq_exec> (0, tsteps, [&] (int t) {
-    RAJA::forall<RAJA::omp_parallel_for_exec> (1, n - 1, [&] (int i) {
-      v(0, i) = 1.0;
-      p(i, 0) = 0.0;
-      q(i, 0) = v(0, i);
-      v(n - 1, i) = 1.0;
+  RAJA::forall<RAJA::seq_exec> (0, tsteps, [=] (int t) {
+    RAJA::forall<RAJA::omp_parallel_for_exec> (1, n - 1, [=] (int i) {
+      v->at(0, i) = 1.0;
+      p->at(i, 0) = 0.0;
+      q->at(i, 0) = v->at(0, i);
+      v->at(n - 1, i) = 1.0;
     });
     RAJA::forallN<OuterIndependent2D> (
       RAJA::RangeSegment { 1, n - 1 },
       RAJA::RangeSegment { 1, n - 1 },
-      [&] (int i, int j) {
-        p(i, j) = -c / (a * p(i, j - 1) + b);
-        q(i, j) =
-          (-d *  u(j, i - 1) + (1.0 + 2.0 * d) * u(j, i) - f * u(j, i + 1)
-             - a * q(i, j - 1))
-            / (a * p(i, j - 1) + b);
+      [=] (int i, int j) {
+        p->at(i, j) = -c / (a * p->at(i, j - 1) + b);
+        q->at(i, j) =
+          (-d *  u->at(j, i - 1) + (1.0 + 2.0 * d) * u->at(j, i) - f * u->at(j, i + 1)
+             - a * q->at(i, j - 1))
+            / (a * p->at(i, j - 1) + b);
       }
     );
     RAJA::forallN<OuterIndependent2D> (
       RAJA::RangeSegment { 1, n - 1 },
       RAJA::RangeStrideSegment { n - 2, 0, -1 },
-      [&] (int i, int j) {
-        v(j, i) = p(i, j) * v(j + 1, i) + q(i, j);
+      [=] (int i, int j) {
+        v->at(j, i) = p->at(i, j) * v->at(j + 1, i) + q->at(i, j);
       }
     );
-    RAJA::forall<RAJA::omp_parallel_for_exec> (1, n - 1, [&] (int i) {
-      u(i, 0) = 1.0;
-      p(i, 0) = 0.0;
-      q(i, 0) = u(i, 0);
-      u(i, n - 1) = 1.0;
+    RAJA::forall<RAJA::omp_parallel_for_exec> (1, n - 1, [=] (int i) {
+      u->at(i, 0) = 1.0;
+      p->at(i, 0) = 0.0;
+      q->at(i, 0) = u->at(i, 0);
+      u->at(i, n - 1) = 1.0;
     });
     RAJA::forallN<OuterIndependent2D> (
       RAJA::RangeSegment { 1, n - 1 },
       RAJA::RangeSegment { 1, n - 1 },
-      [&] (int i, int j) {
-        p(i, j) = -f / (d * p(i, j - 1) + e);
-      q(i, j) =
-        (-a * v(i - 1, j) + (1.0 + 2.0 * a) * v(i, j) - c * v(i + 1, j)
-         - d * q(i, j - 1))
-        / (d * p(i, j - 1) + e);
+      [=] (int i, int j) {
+        p->at(i, j) = -f / (d * p->at(i, j - 1) + e);
+        q->at(i, j) =
+          (-a * v->at(i - 1, j) + (1.0 + 2.0 * a) * v->at(i, j) - c * v->at(i + 1, j)
+           - d * q->at(i, j - 1))
+          / (d * p->at(i, j - 1) + e);
       }
     );
     RAJA::forallN<OuterIndependent2D> (
       RAJA::RangeSegment { 1, n - 1 },
       RAJA::RangeStrideSegment { n - 2, 0, -1 },
-      [&] (int i, int j) {
-        u(i, j) = p(i, j) * u(i, j + 1) + q(i, j);
+      [=] (int i, int j) {
+        u->at(i, j) = p->at(i, j) * u->at(i, j + 1) + q->at(i, j);
       }
     );
   });
@@ -114,16 +114,11 @@ int main(int argc, char** argv) {
   int n = N;
   int tsteps = TSTEPS;
   Arr2D<double> u { n, n }, v { n, n }, p { n, n }, q { n, n };
-  init_array(n, u);
+  init_array(n, &u);
   polybench_timer_start();
-  kernel_adi(tsteps, n, u, v, p, q);
+  kernel_adi(tsteps, n, &u, &v, &p, &q);
   polybench_timer_stop();
   polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, u);
-
-  u.clear();
-  v.clear();
-  p.clear();
-  q.clear();
+  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, &u);
   return 0;
 }
