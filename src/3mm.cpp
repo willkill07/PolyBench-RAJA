@@ -127,5 +127,13 @@ int main(int argc, char** argv) {
   polybench_timer_stop();
   polybench_timer_print();
   if (argc > 42 && !strcmp(argv[0], "")) print_array(ni, nl, &G);
+  E.clear();
+  A.clear();
+  B.clear();
+  F.clear();
+  C.clear();
+  D.clear();
+  G.clear();
+
   return 0;
 }

@@ -14,7 +14,9 @@ OBJDIR := $(PREFIX)/obj
 LIBDIR := $(INSTALLPREFIX)/lib
 BINDIR := $(INSTALLPREFIX)/bin
 
-LIBSRC := $(SRCDIR)/polybench_raja.cpp
+LIBSRCS := polybench_raja.cpp aligned_memory.cpp
+LIBSRC := $(patsubst %,$(SRCDIR)/%,$(LIBSRCS))
+
 SRC := $(wildcard $(SRCDIR)/*.cpp)
 DEPS := $(patsubst $(SRCDIR)%.cpp,$(OBJDIR)/%.d,$(SRC))
 
@@ -42,10 +44,26 @@ $(OBJ) : $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 $(LIBOBJ) : $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $< -c -o $@
 
+
 $(LIB) : $(LIBOBJ)
-	$(AR) $(ARFLAGS) $@ $<
+	$(AR) $(ARFLAGS) $@ $^
+
+lib : $(LIBDIR) $(LIB)
 
 clean :
 	@-rm -vfr $(OBJDIR) $(BINDIR) $(LIBDIR)
+
+DIRS := $(OBJDIR) $(BINDIR) $(LIBDIR)
+
+dirs : $(DIRS)
+
+$(OBJDIR) :
+	-mkdir -p $@
+
+$(BINDIR) :
+	-mkdir -p $@
+
+$(LIBDIR) :
+	-mkdir -p $@
 
 -include $(DEPS)

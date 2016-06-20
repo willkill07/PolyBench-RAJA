@@ -12,14 +12,6 @@
 
 #include "polybench_raja.hpp"
 
-#ifndef POLYBENCH_CACHE_SIZE_KB
-#define POLYBENCH_CACHE_SIZE_KB 32770
-#endif
-
-#ifndef POLYBENCH_CACHE_LINE_SIZE_B
-#define POLYBENCH_CACHE_LINE_SIZE_B 64
-#endif
-
 struct PolybenchData {
   double program_total_flops = 0;
   union {

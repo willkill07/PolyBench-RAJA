@@ -9,73 +9,81 @@
 #include "cholesky.hpp"
 
 
-static void init_array(int n, double A[N][N]) {
-  int i, j;
-  for (i = 0; i < n; i++) {
-    for (j = 0; j <= i; j++)
-      A[i][j] = (double)(-j % n) / n + 1;
-    for (j = i + 1; j < n; j++) {
-      A[i][j] = 0;
+static void init_array(int n, Arr2D<double>* A) {
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int i, int j) {
+      A->at(i, j) = (j <= j) ? ((double)(-j % n) / n + 1) : (i == j);
     }
-    A[i][i] = 1;
-  }
+  );
   int r, s, t;
-  double(*B)[N][N];
-  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
-  for (r = 0; r < n; ++r)
-    for (s = 0; s < n; ++s)
-      (*B)[r][s] = 0;
-  for (t = 0; t < n; ++t)
-    for (r = 0; r < n; ++r)
-      for (s = 0; s < n; ++s)
-        (*B)[r][s] += A[r][t] * A[s][t];
-  for (r = 0; r < n; ++r)
-    for (s = 0; s < n; ++s)
-      A[r][s] = (*B)[r][s];
-  free((void*)B);
+  Arr2D<double> _B { n, n };
+  Arr2D<double>* B = &_B;
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int r, int s) {
+      B->at(r, s) = 0;
+    }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int r, int s) {
+      RAJA::forall<RAJA::simd_exec> (0, n, [=] (int t) {
+        B->at(r, s) += A->at(r, t) * A->at(s, t);
+      });
+    }
+  );
+  RAJA::forallN<Independent2DTiled> (
+    RAJA::RangeSegment { 0, n },
+    RAJA::RangeSegment { 0, n },
+    [=] (int r, int s) {
+      A->at(r, s) = B->at(r, s);
+    }
+  );
 }
 
-static void print_array(int n, double A[N][N]) {
+static void print_array(int n, Arr2D<double>* A) {
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "A");
   for (i = 0; i < n; i++)
     for (j = 0; j <= i; j++) {
       if ((i * n + j) % 20 == 0) fprintf(stderr, "\n");
-      fprintf(stderr, "%0.2lf ", A[i][j]);
+      fprintf(stderr, "%0.2lf ", A->at(i, j));
     }
   fprintf(stderr, "\nend   dump: %s\n", "A");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-static void kernel_cholesky(int n, double A[N][N]) {
+static void kernel_cholesky(int n, Arr2D<double>* A) {
   int i, j, k;
 #pragma scop
   for (i = 0; i < n; i++) {
     for (j = 0; j < i; j++) {
       for (k = 0; k < j; k++) {
-        A[i][j] -= A[i][k] * A[j][k];
+        A->at(i, j) -= A->at(i, k) * A->at(j, k);
       }
-      A[i][j] /= A[j][j];
+      A->at(i, j) /= A->at(j, j);
     }
     for (k = 0; k < i; k++) {
-      A[i][i] -= A[i][k] * A[i][k];
+      A->at(i, i) -= A->at(i, k) * A->at(i, k);
     }
-    A[i][i] = sqrt(A[i][i]);
+    A->at(i, i) = sqrt(A->at(i, i));
   }
 #pragma endscop
 }
 
 int main(int argc, char** argv) {
   int n = N;
-  double(*A)[N][N];
-  A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
-  init_array(n, *A);
+  Arr2D<double> A { n, n };
+  init_array(n, &A);
   polybench_timer_start();
-  kernel_cholesky(n, *A);
+  kernel_cholesky(n, &A);
   polybench_timer_stop();
   polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *A);
-  free((void*)A);
+  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, &A);
   return 0;
 }
