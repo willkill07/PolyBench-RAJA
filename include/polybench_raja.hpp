@@ -27,7 +27,6 @@
 #define POLYBENCH_CACHE_LINE_SIZE_B 64
 #endif
 
-#define RAJA_ENABLE_NESTED 1
 #include <RAJA/RAJA.hxx>
 
 #include <MultiDimArray.hpp>
