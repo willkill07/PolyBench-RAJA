@@ -13,7 +13,7 @@ OBJDIR := $(PREFIX)/obj
 LIBDIR := $(INSTALLPREFIX)/lib
 BINDIR := $(INSTALLPREFIX)/bin
 
-LIBSRCS := polybench_raja.cpp aligned_memory.cpp
+LIBSRCS := aligned_memory.cpp
 LIBSRC := $(patsubst %,$(SRCDIR)/%,$(LIBSRCS))
 
 SRC := $(wildcard $(SRCDIR)/*.cpp)

@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
 
   init_array(m, n, &float_n, &data);
   {
-    util::block_timer { "CORRELATION" };
+    util::block_timer t { "CORRELATION" };
     kernel_correlation(m, n, float_n, &data, &corr, &mean, &stddev);
   }
   if (argc > 42)

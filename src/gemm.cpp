@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
   init_array(ni, nj, nk, &alpha, &beta, &C, &A, &B);
   {
-		util::block_timer { "GEMM" };
+		util::block_timer t { "GEMM" };
 		kernel_gemm(ni, nj, nk, alpha, beta, &C, &A, &B);
 	}
 	if (argc > 42)
