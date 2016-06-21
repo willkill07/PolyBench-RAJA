@@ -13,7 +13,7 @@ OBJDIR := $(PREFIX)/obj
 LIBDIR := $(INSTALLPREFIX)/lib
 BINDIR := $(INSTALLPREFIX)/bin
 
-LIBSRCS := aligned_memory.cpp
+LIBSRCS := AlignedMemory.cpp
 LIBSRC := $(patsubst %,$(SRCDIR)/%,$(LIBSRCS))
 
 SRC := $(wildcard $(SRCDIR)/*.cpp)

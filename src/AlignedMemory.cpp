@@ -1,4 +1,4 @@
-#include <aligned_memory.hpp>
+#include <AlignedMemory.hpp>
 
 #include <cstdlib>
 #include <cinttypes>

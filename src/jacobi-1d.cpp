@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 /* Include polybench common header. */
-#include "polybench_raja.hpp"
+#include "PolyBenchRAJA.hpp"
 /* Include benchmark-specific header. */
 #include "jacobi-1d.hpp"
 

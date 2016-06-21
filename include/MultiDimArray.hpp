@@ -4,13 +4,12 @@
 #include <algorithm>
 #include <array>
 #include <memory>
-
-#include <aligned_memory.hpp>
-
-#include <cstddef>
-#include <memory>
 #include <type_traits>
 #include <utility>
+
+#include <cstddef>
+
+#include <AlignedMemory.hpp>
 
 namespace util {
 
