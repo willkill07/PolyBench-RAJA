@@ -27,8 +27,7 @@ static void print_array(int n, double y[N]) {
 }
 
 static void kernel_durbin(int n, const Arr1D<double>* r, Arr1D<double>* y) {
-	Arr1D<double> _z { n };
-	Arr1D<double>* z { &_z };
+	Arr1D<double> _z { n }, *z { &_z };
 	double _alpha, _beta, *alpha { &_alpha }, *beta { &_beta };
 #pragma scop
   y->at(0) = -r->at(0);
@@ -36,7 +35,7 @@ static void kernel_durbin(int n, const Arr1D<double>* r, Arr1D<double>* y) {
   *alpha = -r->at(0);
   RAJA::forall<RAJA::seq_exec> (1, n, [=] (int k) {
     *beta = (1 - *alpha * *alpha) * *beta;
-		RAJA::ReduceSum<double> sum { 0.0 };
+		RAJA::ReduceSum<RAJA::omp_reduce, double> sum { 0.0 };
     RAJA::forall<RAJA::omp_parallel_for_exec> (0, k, [=] (int i) {
       sum += r->at(k - i - 1) * y->at(i);
     });

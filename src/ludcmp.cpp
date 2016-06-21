@@ -8,32 +8,30 @@
 /* Include benchmark-specific header. */
 #include "ludcmp.hpp"
 
-
 static void init_array(int n,
-                       double A[N][N],
-                       double b[N],
-                       double x[N],
-                       double y[N]) {
+                       Arr2D<double>* A,
+                       Arr1D<double>* b,
+                       Arr1D<double>* x,
+                       Arr1D<double>* y) {
   double fn = (double)n;
-  double(*B)[N][N];
-  B = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
+	Arr2D<double> _B { n, n }, *B { &_B };
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
-    x[i] = 0;
-    y[i] = 0;
-    b[i] = (i + 1) / fn / 2.0 + 4;
+    x->at(i) = 0;
+    y->at(i) = 0;
+    b->at(i) = (i + 1) / fn / 2.0 + 4;
   });
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, n },
     [=] (int i, int j) {
-      A[i][j] = (j < i) ? ((double)(-j % n) / n + 1) : (i == j);
+      A->at(i,j) = (j < i) ? ((double)(-j % n) / n + 1) : (i == j);
     }
   );
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, n },
     [=] (int r, int s) {
-      (*B)[r][s] = 0;
+      B->at(r,s) = 0;
     }
   );
   RAJA::forallN<Independent2DTiled> (
@@ -41,7 +39,7 @@ static void init_array(int n,
     RAJA::RangeSegment { 0, n },
     [=] (int t, int r) {
       RAJA::forall<RAJA::simd_exec> (0, n, [=] (int s) {
-        (*B)[r][s] += A[r][t] * A[s][t];
+        B->at(r,s) += A->at(r,t) * A->at(s,t);
       });
     }
   );
@@ -49,77 +47,68 @@ static void init_array(int n,
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, n },
     [=] (int r, int s) {
-      A[r][s] = (*B)[r][s];
+      A->at(r,s) = B->at(r,s);
     }
   );
-  free((void*)B);
 }
 
-static void print_array(int n, double x[N]) {
+static void print_array(int n, const Arr1D<double>* x) {
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "x");
   for (i = 0; i < n; i++) {
     if (i % 20 == 0) fprintf(stderr, "\n");
-    fprintf(stderr, "%0.2lf ", x[i]);
+    fprintf(stderr, "%0.2lf ", x->at(i));
   }
   fprintf(stderr, "\nend   dump: %s\n", "x");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
 static void kernel_ludcmp(int n,
-                          double A[N][N],
-                          double b[N],
-                          double x[N],
-                          double y[N]) {
+                          Arr2D<double>* A,
+                          Arr1D<double>* b,
+                          Arr1D<double>* x,
+                          Arr1D<double>* y) {
 #pragma scop
   RAJA::forall<RAJA::seq_exec> (0, n, [=] (int i) {
     RAJA::forall<RAJA::omp_parallel_for_exec> (0, i, [=] (int j) {
       RAJA::forall<RAJA::simd_exec> (0, j, [=] (int k) {
-        A[i][j] -= A[i][k] * A[k][j];
+        A->at(i,j) -= A->at(i,k) * A->at(k,j);
       });
-      A[i][j] /= A[j][j];
+      A->at(i,j) /= A->at(j,j);
     });
     RAJA::forall<RAJA::omp_parallel_for_exec> (i, n, [=] (int j) {
       RAJA::forall<RAJA::simd_exec> (0, i, [=] (int k) {
-        A[i][j] -= A[i][k] * A[k][j];
+        A->at(i,j) -= A->at(i,k) * A->at(k,j);
       });
     });
   });
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
     RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
-      b[i] -= A[i][j] * y[j];
+      b->at(i) -= A->at(i,j) * y->at(j);
     });
-    y[i] = b[i];
+    y->at(i) = b->at(i);
   });
   RAJA::forall<RAJA::omp_parallel_for_exec> (n - 1, -1, -1, [=] (int i) {
     RAJA::forall<RAJA::simd_exec> (0, i, [=] (int j) {
-      y[i] -= A[i][j] * x[j];
+      y->at(i) -= A->at(i,j) * x->at(j);
     });
-    x[i] = y[i] / A[i][i];
+    x->at(i) = y->at(i) / A->at(i,i);
   });
 #pragma endscop
 }
 
 int main(int argc, char** argv) {
   int n = N;
-  double(*A)[N][N];
-  A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));
-  double(*b)[N];
-  b = (double(*)[N])polybench_alloc_data(N, sizeof(double));
-  double(*x)[N];
-  x = (double(*)[N])polybench_alloc_data(N, sizeof(double));
-  double(*y)[N];
-  y = (double(*)[N])polybench_alloc_data(N, sizeof(double));
-  init_array(n, *A, *b, *x, *y);
-  polybench_timer_start();
-  kernel_ludcmp(n, *A, *b, *x, *y);
-  polybench_timer_stop();
-  polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(n, *x);
-  free((void*)A);
-  free((void*)b);
-  free((void*)x);
-  free((void*)y);
+	Arr2D<double> A { n, n };
+	Arr1D<double> b { n }, x { n }, y { n };
+
+  init_array(n, &A, &b, &x, &y);
+  {
+		util::block_timer t { "LUDCMP" };
+		kernel_ludcmp(n, &A, &b, &x, &y);
+  }
+	if (argc > 42)
+		print_array(n, &x);
   return 0;
 }

@@ -9,16 +9,15 @@
 #include "cholesky.hpp"
 
 static void init_array(int n, Arr2D<double>* A) {
-  RAJA::forallN<Independent2DTiled> (
+  Arr2D<double> _B { n, n }, *B = &_B;
+	RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, n },
     [=] (int i, int j) {
       A->at(i, j) = (j <= i) ? ((double)(-j % n) / n + 1) : (i == j);
     }
   );
-  Arr2D<double> _B { n, n };
-  Arr2D<double>* B = &_B;
-  RAJA::forallN<Independent2DTiled> (
+	RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, n },
     RAJA::RangeSegment { 0, n },
     [=] (int r, int s) {
@@ -57,22 +56,21 @@ static void print_array(int n, Arr2D<double>* A) {
 }
 
 static void kernel_cholesky(int n, Arr2D<double>* A) {
-  int i, j, k;
 #pragma scop
   RAJA::forall<RAJA::seq_exec> (0, n, [=] (int i) {
-      RAJA::forall<RAJA::omp_parallel_for_exec> (0, i, [=] (int j) {
-          RAJA::forall<RAJA::simd_exec> (0, j, [=] (int k) {
-              A->at(i, j) -= A->at(i, k) * A->at(j, k);
-            });
-          A->at(i, j) /= A->at(j, j);
-        });
-      RAJA::forall<RAJA::simd_exec> (0, i, [=] (int k) {
-          A->at(i, i) -= A->at(i, k) * A->at(i, k);
-        });
-    });
+    RAJA::forall<RAJA::omp_parallel_for_exec> (0, i, [=] (int j) {
+      RAJA::forall<RAJA::simd_exec> (0, j, [=] (int k) {
+				A->at(i, j) -= A->at(i, k) * A->at(j, k);
+			});
+			A->at(i, j) /= A->at(j, j);
+		});
+		RAJA::forall<RAJA::simd_exec> (0, i, [=] (int k) {
+			A->at(i, i) -= A->at(i, k) * A->at(i, k);
+		});
+  });
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, n, [=] (int i) {
-      A->at(i, i) = sqrt(A->at(i, i));
-    });
+    A->at(i, i) = sqrt(A->at(i, i));
+  });
 #pragma endscop
 }
 
