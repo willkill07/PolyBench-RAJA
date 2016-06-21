@@ -8,30 +8,28 @@
 /* Include benchmark-specific header. */
 #include "deriche.hpp"
 
-
 static void init_array(int w,
                        int h,
                        float* alpha,
-                       float imgIn[W][H],
-                       float imgOut[W][H]) {
+                       Arr2D<float>* imgIn) {
   *alpha = 0.25;
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, w },
     RAJA::RangeSegment { 0, h },
     [=] (int i, int j) {
-      imgIn[i][j] = (float)((313 * i + 991 * j) % 65536) / 65535.0f;
+      imgIn->at(i,j) = (float)((313 * i + 991 * j) % 65536) / 65535.0f;
     }
   );
 }
 
-static void print_array(int w, int h, float imgOut[W][H]) {
+static void print_array(int w, int h, const Arr2D<float>* imgOut) {
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "imgOut");
   for (i = 0; i < w; i++)
     for (j = 0; j < h; j++) {
       if ((i * h + j) % 20 == 0) fprintf(stderr, "\n");
-      fprintf(stderr, "%0.2f ", imgOut[i][j]);
+      fprintf(stderr, "%0.2f ", imgOut->at(i,j));
     }
   fprintf(stderr, "\nend   dump: %s\n", "imgOut");
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
@@ -40,10 +38,10 @@ static void print_array(int w, int h, float imgOut[W][H]) {
 static void kernel_deriche(int w,
                            int h,
                            float alpha,
-                           float imgIn[W][H],
-                           float imgOut[W][H],
-                           float y1[W][H],
-                           float y2[W][H]) {
+                           const Arr2D<float>* imgIn,
+                           Arr2D<float>* imgOut,
+                           Arr2D<float>* y1,
+                           Arr2D<float>* y2) {
   float k;
   float a1, a2, a3, a4, a5, a6, a7, a8;
   float b1, b2, c1, c2;
@@ -58,65 +56,59 @@ static void kernel_deriche(int w,
   b2 = -expf(-2.0f * alpha);
   c1 = c2 = 1;
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, w, [=] (int i) {
-    float ym1 = 0.0f;
-    float ym2 = 0.0f;
-    float xm1 = 0.0f;
-    RAJA::forall<RAJA::simd_exec> (0, h, [&] (int j) {
-      y1[i][j] = a1 * imgIn[i][j] + a2 * xm1 + b1 * ym1 + b2 * ym2;
-      xm1 = imgIn[i][j];
-      ym2 = ym1;
-      ym1 = y1[i][j];
+			float _ym1 { 0.0f  }, _ym2 { 0.0f  }, _xm1 { 0.0f  };
+			float *ym1 { &_ym1 }, *ym2 { &_ym2 }, *xm1 { &_xm1 };
+    RAJA::forall<RAJA::simd_exec> (0, h, [=] (int j) {
+      y1->at(i,j) = a1 * imgIn->at(i,j) + a2 * *xm1 + b1 * *ym1 + b2 * *ym2;
+      *xm1 = imgIn->at(i,j);
+      *ym2 = *ym1;
+      *ym1 = y1->at(i,j);
     });
   });
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, w, [=] (int i) {
-    float yp1 = 0.0f;
-    float yp2 = 0.0f;
-    float xp1 = 0.0f;
-    float xp2 = 0.0f;
-    RAJA::forall<RAJA::simd_exec> (h - 1, -1, -1, [&] (int j) {
-      y2[i][j] = a3 * xp1 + a4 * xp2 + b1 * yp1 + b2 * yp2;
-      xp2 = xp1;
-      xp1 = imgIn[i][j];
-      yp2 = yp1;
-      yp1 = y2[i][j];
+		float _yp1 { 0.0f  }, _yp2 { 0.0f  }, _xp1 { 0.0f  }, _xp2 { 0.0f  };
+		float *yp1 { &_yp1 }, *yp2 { &_yp2 }, *xp1 { &_xp1 }, *xp2 { &_xp2 };
+    RAJA::forall<RAJA::simd_exec> (h - 1, -1, -1, [=] (int j) {
+      y2->at(i,j) = a3 * *xp1 + a4 * *xp2 + b1 * *yp1 + b2 * *yp2;
+      *xp2 = *xp1;
+      *xp1 = imgIn->at(i,j);
+      *yp2 = *yp1;
+      *yp1 = y2->at(i,j);
     });
   });
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, w },
     RAJA::RangeSegment { 0, h },
     [=] (int i, int j) {
-      imgOut[i][j] = c1 * (y1[i][j] + y2[i][j]);
+      imgOut->at(i,j) = c1 * (y1->at(i,j) + y2->at(i,j));
     }
   );
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, h, [=] (int j) {
-    float tm1 = 0.0f;
-    float ym1 = 0.0f;
-    float ym2 = 0.0f;
-    RAJA::forall<RAJA::simd_exec> (0, w, [&] (int i) {
-      y1[i][j] = a5 * imgOut[i][j] + a6 * tm1 + b1 * ym1 + b2 * ym2;
-      tm1 = imgOut[i][j];
-      ym2 = ym1;
-      ym1 = y1[i][j];
+			float _ym1 { 0.0f  }, _ym2 { 0.0f  }, _tm1 { 0.0f  };
+			float *ym1 { &_ym1 }, *ym2 { &_ym2 }, *tm1 { &_tm1 };
+    RAJA::forall<RAJA::simd_exec> (0, w, [=] (int i) {
+      y1->at(i,j) = a5 * imgOut->at(i,j) + a6 * *tm1 + b1 * *ym1 + b2 * *ym2;
+      *tm1 = imgOut->at(i,j);
+      *ym2 = *ym1;
+      *ym1 = y1->at(i,j);
     });
   });
   RAJA::forall<RAJA::omp_parallel_for_exec> (0, h, [=] (int j) {
-    float tp1 = 0.0f;
-    float tp2 = 0.0f;
-    float yp1 = 0.0f;
-    float yp2 = 0.0f;
-    RAJA::forall<RAJA::simd_exec> (w - 1, -1, -1, [&] (int i) {
-      y2[i][j] = a7 * tp1 + a8 * tp2 + b1 * yp1 + b2 * yp2;
+		float _yp1 { 0.0f  }, _yp2 { 0.0f  }, _tp1 { 0.0f  }, _tp2 { 0.0f  };
+		float *yp1 { &_yp1 }, *yp2 { &_yp2 }, *tp1 { &_tp1 }, *tp2 { &_tp2 };
+    RAJA::forall<RAJA::simd_exec> (w - 1, -1, -1, [=] (int i) {
+      y2->at(i,j) = a7 * tp1 + a8 * tp2 + b1 * yp1 + b2 * yp2;
       tp2 = tp1;
-      tp1 = imgOut[i][j];
+      tp1 = imgOut->at(i,j);
       yp2 = yp1;
-      yp1 = y2[i][j];
+      yp1 = y2->at(i,j);
     });
   });
   RAJA::forallN<Independent2DTiled> (
     RAJA::RangeSegment { 0, w },
     RAJA::RangeSegment { 0, h },
     [=] (int i, int j) {
-      imgOut[i][j] = c2 * (y1[i][j] + y2[i][j]);
+      imgOut->at(i,j) = c2 * (y1->at(i,j) + y2->at(i,j));
     }
   );
 #pragma endscop
@@ -126,23 +118,14 @@ int main(int argc, char** argv) {
   int w = W;
   int h = H;
   float alpha;
-  float(*imgIn)[W][H];
-  imgIn = (float(*)[W][H])polybench_alloc_data((W) * (H), sizeof(float));
-  float(*imgOut)[W][H];
-  imgOut = (float(*)[W][H])polybench_alloc_data((W) * (H), sizeof(float));
-  float(*y1)[W][H];
-  y1 = (float(*)[W][H])polybench_alloc_data((W) * (H), sizeof(float));
-  float(*y2)[W][H];
-  y2 = (float(*)[W][H])polybench_alloc_data((W) * (H), sizeof(float));
-  init_array(w, h, &alpha, *imgIn, *imgOut);
-  polybench_timer_start();
-  kernel_deriche(w, h, alpha, *imgIn, *imgOut, *y1, *y2);
-  polybench_timer_stop();
-  polybench_timer_print();
-  if (argc > 42 && !strcmp(argv[0], "")) print_array(w, h, *imgOut);
-  free((void*)imgIn);
-  free((void*)imgOut);
-  free((void*)y1);
-  free((void*)y2);
+	Arr2D<float> imgIn { w, h }, imgOut { w, h }, y1 { w, h }, y2 { w, h };
+
+  init_array(w, h, &alpha, &imgIn);
+	{
+		util::block_timer t { "DERICHE" };
+		kernel_deriche(w, h, alpha, &imgIn, &imgOut, &y1, &y2);
+  }
+	if (argc > 42)
+		print_array(w, h, &imgOut);
   return 0;
 }
