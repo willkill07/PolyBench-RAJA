@@ -1,59 +1,28 @@
-/* floyd-warshall.c: this file is part of PolyBench/C */
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-/* Include polybench common header. */
+#include <iostream>
+
 #include "PolyBenchRAJA.hpp"
-/* Include benchmark-specific header. */
-#include "floyd-warshall.hpp"
 
-static void init_array(int n, Arr2D<int>* path) {
-  RAJA::forallN<Independent2D>(
-      RAJA::RangeSegment{0, n}, RAJA::RangeSegment{0, n}, [=](int i, int j) {
-        path->at(i, j) = i * j % 7 + 1;
-        if ((i + j) % 13 == 0 || (i + j) % 7 == 0 || (i + j) % 11 == 0)
-          path->at(i, j) = 999;
-      });
-}
+#include "Base/floyd-warshall.hpp"
+#include "C++/floyd-warshall.hpp"
+#include "RAJA/floyd-warshall.hpp"
 
-static void print_array(int n, const Arr2D<int>* path) {
-  int i, j;
-  fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
-  fprintf(stderr, "begin dump: %s", "path");
-  for (i = 0; i < n; i++)
-    for (j = 0; j < n; j++) {
-      if ((i * n + j) % 20 == 0) fprintf(stderr, "\n");
-      fprintf(stderr, "%d ", path->at(i, j));
-    }
-  fprintf(stderr, "\nend   dump: %s\n", "path");
-  fprintf(stderr, "==END   DUMP_ARRAYS==\n");
-}
-
-static void kernel_floyd_warshall(int n, Arr2D<int>* path) {
-#pragma scop
-  RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,
-                                                  RAJA::seq_exec,
-                                                  RAJA::seq_exec>>>(
-      RAJA::RangeSegment{0, n},
-      RAJA::RangeSegment{0, n},
-      RAJA::RangeSegment{0, n},
-      [=](int k, int i, int j) {
-        path->at(i, j) =
-            std::min(path->at(i, j), path->at(i, k) + path->at(k, j));
-      });
-#pragma endscop
-}
-
-int main(int argc, char** argv) {
-  int n = N;
-  Arr2D<int> path{n, n};
-
-  init_array(n, &path);
-  {
-    util::block_timer t{"FLOYD-WARSHALL"};
-    kernel_floyd_warshall(n, &path);
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    std::cerr << "Usage: \n  ./program <n>" << std::endl;
+    exit(-1);
   }
-  if (argc > 42) print_array(n, &path);
+  int n = std::stoi(argv[1]);
+
+  PolyBenchKernel *vanilla = new CPlusPlus::floyd_warshall<int>{n};
+  vanilla->run();
+  PolyBenchKernel *raja = new RAJA::floyd_warshall<int>{n};
+  raja->run();
+
+  if (!vanilla->compare(raja))
+    std::cerr << "error beyond epsilon detected" << std::endl;
+
+  delete raja;
+  delete vanilla;
+
   return 0;
 }

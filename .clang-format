@@ -1,25 +1,34 @@
-BasedOnStyle : google
+BasedOnStyle : LLVM
 IndentWidth : 2
-# BreakBeforeBraces : Linux
+ContinuationIndentWidth : 2
+
 BreakBeforeBraces : Attach
 UseTab: Never
-AllowShortIfStatementsOnASingleLine : true
+AllowShortIfStatementsOnASingleLine : false
+AllowShortFunctionsOnASingleLine : false
+AllowShortBlocksOnASingleLine : false
 ConstructorInitializerAllOnOneLineOrOnePerLine : true
-AllowShortFunctionsOnASingleLine : true
 AllowShortLoopsOnASingleLine : false
 BinPackParameters : false
 AllowAllParametersOfDeclarationOnNextLine : false
 AlignTrailingComments : true
 ColumnLimit : 80
-PenaltyBreakBeforeFirstCallParameter : 100
+PenaltyBreakBeforeFirstCallParameter : 65000
 PenaltyReturnTypeOnItsOwnLine : 65000
 PenaltyBreakString : 10
+
+
+Standard : Cpp11
 
 # These improve formatting results but require clang 3.6/7 or higher
 BreakBeforeBinaryOperators : NonAssignment
 AlignAfterOpenBracket: true
+AlwaysBreakAfterDefinitionReturnType : false
+
 BinPackArguments : false
 AlignOperands : true
 AlwaysBreakTemplateDeclarations : true
 Cpp11BracedListStyle : true
 
+# Clang 3.8+
+AlignAfterOpenBracket: AlwaysBreak

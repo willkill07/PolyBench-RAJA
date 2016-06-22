@@ -1,10 +1,10 @@
 RAJA_INSTALL_DIR := dist/RAJA
 CXX := clang++
-#CXX := g++
 OPTS ?= -O3 -march=native
 CXXFLAGS := -I$(RAJA_INSTALL_DIR)/include -I./include $(OPTS)
-CPPFLAGS := -std=c++11 -fopenmp -MMD -DEXTRALARGE_DATASET
+CPPFLAGS := -std=c++11 -fopenmp=libomp -MMD -Wall -Wextra -pedantic
 LDLIBS := $(RAJA_INSTALL_DIR)/lib/libRAJA.a -lrt
+ARFLAGS := r
 
 INSTALLPREFIX := dist/PolyBench
 PREFIX := build/PolyBench
@@ -33,37 +33,40 @@ BIN := $(patsubst $(SRCDIR)/%.cpp,$(BINDIR)/%,$(SRC))
 all : setup $(BIN)
 
 setup :
-	-@mkdir -p $(BINDIR) $(OBJDIR) $(LIBDIR)
+	@-mkdir -p $(BINDIR) $(OBJDIR) $(LIBDIR)
 
 $(BIN) : $(BINDIR)/% : $(OBJDIR)/%.o $(LIB)
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ $(LDLIBS) -o $@
+	@echo "[LINK] $@"
+	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) $^ $(LDLIBS) -o $@
 
 $(OBJ) : $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
+	@echo "[COMPILE] $< --> $@"
+	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(LIBOBJ) : $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
-
+	@echo "[COMPILE] $< --> $@"
+	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 $(LIB) : $(LIBOBJ)
-	$(AR) $(ARFLAGS) $@ $^
+	@echo "[ARCHIVE] ($^) --> $@"
+	@$(AR) $(ARFLAGS) $@ $^ >& /dev/null
 
 lib : $(LIBDIR) $(LIB)
 
 clean :
-	@-rm -vfr $(OBJDIR) $(BINDIR) $(LIBDIR)
+	@-rm -fr $(OBJDIR) $(BINDIR) $(LIBDIR)
 
 DIRS := $(OBJDIR) $(BINDIR) $(LIBDIR)
 
 dirs : $(DIRS)
 
 $(OBJDIR) :
-	-mkdir -p $@
+	@-mkdir -p $@
 
 $(BINDIR) :
-	-mkdir -p $@
+	@-mkdir -p $@
 
 $(LIBDIR) :
-	-mkdir -p $@
+	@-mkdir -p $@
 
 -include $(DEPS)
