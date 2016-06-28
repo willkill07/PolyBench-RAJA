@@ -1,0 +1,73 @@
+sudo: required
+dist: trusty
+language: cpp
+
+matrix:
+  include:
+   - compiler: gcc-4
+     addons:
+       apt:
+         sources:
+           - ubuntu-toolchain-r-test
+         packages:
+           - g++-4.9
+     env:
+       - COMPILER=g++-4.9
+       - _CC=gcc-4.9
+       - _CXX=g++-4.9
+       - OMP_NUM_THREADS=2
+   - compiler: gcc-5
+     addons:
+       apt:
+         sources:
+           - ubuntu-toolchain-r-test
+         packages:
+           - g++-5
+     env:
+       - COMPILER=g++-5
+       - _CC=gcc-5
+       - _CXX=g++-5
+       - OMP_NUM_THREADS=2
+   - compiler: gcc-6
+     addons:
+       apt:
+         sources:
+           - ubuntu-toolchain-r-test
+         packages:
+           - g++-6
+     env:
+       - COMPILER=g++-6
+       - _CC=gcc-6
+       - _CXX=g++-6
+       - OMP_NUM_THREADS=2
+   - compiler: clang-3.8
+     addons:
+       apt:
+         sources:
+           - ubuntu-toolchain-r-test
+         packages:
+           - libiomp5
+           - g++-5
+     env:
+         - LLVM_PATH=$HOME/llvm/clang+llvm-3.8.0-x86_64-linux-gnu-ubuntu-14.04
+         - COMPILER=$LLVM_PATH/bin/clang++
+         - _CC=$LLVM_PATH/bin/clang
+         - _CXX=$LLVM_PATH/bin/clang++
+         - OMP_NUM_THREADS=2
+         - KMP_AFFINITY=scatter
+         - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LLVM_PATH/lib
+         - DOWNLOAD=http://llvm.org/releases/3.8.0/clang+llvm-3.8.0-x86_64-linux-gnu-ubuntu-14.04.tar.xz
+cache:
+    directories:
+        - $HOME/llvm
+        - /opt/intel
+before_install:
+  - sudo apt-get update -qq
+  - if [[ -n "$DOWNLOAD" ]] ; then if [[ ! -e "$COMPILER" ]] ; then pushd $HOME; curl -o tarball.tar.xz $DOWNLOAD && cd $HOME/llvm && tar xf $HOME/tarball.tar.xz ; popd ; fi ; fi
+  - export CC=$_CC
+  - export CXX=$_CXX
+script:
+  - mkdir build && cd build
+  - cmake ..
+  - make -j4
+  - ctest -V

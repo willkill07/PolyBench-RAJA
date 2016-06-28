@@ -1,5 +1,5 @@
 #ifndef _RAJA_COVARIANCE_HPP_
-#define _RAJA_COVARIANCE_HPP
+#define _RAJA_COVARIANCE_HPP_
 
 #include <RAJA/RAJA.hxx>
 

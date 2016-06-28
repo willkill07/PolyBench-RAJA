@@ -1,5 +1,7 @@
 # PolyBench/C-RAJA 0.1.0
 
+[![Build Status](https://travis-ci.org/willkill07/PolyBench-RAJA.svg?branch=master)](https://travis-ci.org/willkill07/PolyBench-RAJA)
+
 PolyBench is a benchmark suite of 30 numerical computations with
 static control flow, extracted from operations in various application
 domains (linear algebra computations, image processing, physics
@@ -38,6 +40,8 @@ Copyright (c) 2011-2016 the Ohio State University.
 
 All kernels are functionally equivalent. Some are parallelized; others just use `simd_exec` or `seq_exec`
 
+Travis CI is a work-in progress. Currently supporting GCC 4.9, 5.1 and Clang 3.7, 3.8
+
 ## Available benchmarks
 
 | Benchmark | Description |
@@ -58,7 +62,7 @@ All kernels are functionally equivalent. Some are parallelized; others just use 
 | gemver | Vector Multiplication and Matrix Addition |
 | gesummv | Scalar, Vector and Matrix Multiplication |
 | gramschmidt | Gram-Schmidt decomposition |
-| head-3d | Heat equation over 3D data domain |
+| heat-3d | Heat equation over 3D data domain |
 | jacobi-1D | 1-D Jacobi stencil computation |
 | jacobi-2D | 2-D Jacobi stencil computation |
 | lu | LU decomposition |

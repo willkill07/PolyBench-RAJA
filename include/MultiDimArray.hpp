@@ -39,7 +39,9 @@ class MultiDimArray {
 
   inline Ptr<T> allocData() const noexcept {
     void *data;
-    posix_memalign(&data, MULTIDIMARRAY_ALIGNMENT, size * sizeof(T));
+    if (posix_memalign(&data, MULTIDIMARRAY_ALIGNMENT, size * sizeof(T))) {
+      exit(-1);
+    }
     return static_cast<Ptr<T>>(data);
   }
 

@@ -19,11 +19,12 @@ int main(int argc, char **argv) {
   PolyBenchKernel *raja = new RAJA::deriche<float>{w, h};
   raja->run();
 
-  if (!vanilla->compare(raja))
+  bool diff = !vanilla->compare(raja);
+  if (diff)
     std::cerr << "error beyond epsilon detected" << std::endl;
 
   delete raja;
   delete vanilla;
 
-  return 0;
+  return (diff);
 }
