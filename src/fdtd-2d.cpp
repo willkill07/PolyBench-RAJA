@@ -1,31 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/fdtd-2d.hpp"
+#include "PolyBench/C++/OpenMP/fdtd-2d.hpp"
+#include "PolyBench/RAJA/Base/fdtd-2d.hpp"
+#include "PolyBench/RAJA/OpenMP/fdtd-2d.hpp"
 
-#include "Base/fdtd-2d.hpp"
-#include "C++/fdtd-2d.hpp"
-#include "RAJA/fdtd-2d.hpp"
+using DataType = Base::fdtd_2d<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::fdtd_2d<DataType>,
+                           CPlusPlus::OpenMP::fdtd_2d<DataType>,
+                           RAJA::Base::fdtd_2d<DataType>,
+                           RAJA::OpenMP::fdtd_2d<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 4) {
-    std::cerr << "Usage: \n  ./program <tmax> <nx> <ny>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int tmax = std::stoi(argv[1]);
-  int nx = std::stoi(argv[2]);
-  int ny = std::stoi(argv[3]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::fdtd_2d<double>{nx, ny, tmax};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::fdtd_2d<double>{nx, ny, tmax};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

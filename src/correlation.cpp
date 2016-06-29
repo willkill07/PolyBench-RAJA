@@ -1,30 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/correlation.hpp"
+#include "PolyBench/C++/OpenMP/correlation.hpp"
+#include "PolyBench/RAJA/Base/correlation.hpp"
+#include "PolyBench/RAJA/OpenMP/correlation.hpp"
 
-#include "Base/correlation.hpp"
-#include "C++/correlation.hpp"
-#include "RAJA/correlation.hpp"
+using DataType = Base::correlation<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::correlation<DataType>,
+                           CPlusPlus::OpenMP::correlation<DataType>,
+                           RAJA::Base::correlation<DataType>,
+                           RAJA::OpenMP::correlation<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
-    std::cerr << "Usage: \n  ./program <n> <m>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int n = std::stoi(argv[1]);
-  int m = std::stoi(argv[2]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::correlation<double>{n, m};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::correlation<double>{n, m};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

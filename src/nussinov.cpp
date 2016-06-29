@@ -1,29 +1,30 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/nussinov.hpp"
+#include "PolyBench/C++/OpenMP/nussinov.hpp"
+#include "PolyBench/RAJA/Base/nussinov.hpp"
+#include "PolyBench/RAJA/OpenMP/nussinov.hpp"
 
-#include "Base/nussinov.hpp"
-#include "C++/nussinov.hpp"
-#include "RAJA/nussinov.hpp"
+using Kernels = std::tuple<CPlusPlus::Base::nussinov,
+                           CPlusPlus::OpenMP::nussinov,
+                           RAJA::Base::nussinov,
+                           RAJA::OpenMP::nussinov>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: \n  ./program <n>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int n = std::stoi(argv[1]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::nussinov{n};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::nussinov{n};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

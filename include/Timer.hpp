@@ -43,7 +43,8 @@ public:
 
   inline ~BlockTimer() {
     t.stop();
-    std::cout << tag << ": " << t.elapsed() << std::endl;
+    std::cout << "[" << tag << "] Execution Time (us): " << (1e6 * t.elapsed())
+              << std::endl;
   }
 };
 }

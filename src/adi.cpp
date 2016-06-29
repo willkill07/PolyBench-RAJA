@@ -1,30 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/adi.hpp"
+#include "PolyBench/C++/OpenMP/adi.hpp"
+#include "PolyBench/RAJA/Base/adi.hpp"
+#include "PolyBench/RAJA/OpenMP/adi.hpp"
 
-#include "Base/adi.hpp"
-#include "C++/adi.hpp"
-#include "RAJA/adi.hpp"
+using DataType = Base::adi<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::adi<DataType>,
+                           CPlusPlus::OpenMP::adi<DataType>,
+                           RAJA::Base::adi<DataType>,
+                           RAJA::OpenMP::adi<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
-    std::cerr << "Usage: \n  ./program <tsteps> <n>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int tsteps = std::stoi(argv[1]);
-  int n = std::stoi(argv[2]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::adi<double>{n, tsteps};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::adi<double>{n, tsteps};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

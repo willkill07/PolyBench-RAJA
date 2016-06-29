@@ -1,30 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/bicg.hpp"
+#include "PolyBench/C++/OpenMP/bicg.hpp"
+#include "PolyBench/RAJA/Base/bicg.hpp"
+#include "PolyBench/RAJA/OpenMP/bicg.hpp"
 
-#include "Base/bicg.hpp"
-#include "C++/bicg.hpp"
-#include "RAJA/bicg.hpp"
+using DataType = Base::bicg<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::bicg<DataType>,
+                           CPlusPlus::OpenMP::bicg<DataType>,
+                           RAJA::Base::bicg<DataType>,
+                           RAJA::OpenMP::bicg<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
-    std::cerr << "Usage: \n  ./program <m> <n>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int m = std::stoi(argv[1]);
-  int n = std::stoi(argv[2]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::bicg<double>{m, n};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::bicg<double>{m, n};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

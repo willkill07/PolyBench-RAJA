@@ -1,32 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/2mm.hpp"
+#include "PolyBench/C++/OpenMP/2mm.hpp"
+#include "PolyBench/RAJA/Base/2mm.hpp"
+#include "PolyBench/RAJA/OpenMP/2mm.hpp"
 
-#include "Base/2mm.hpp"
-#include "C++/2mm.hpp"
-#include "RAJA/2mm.hpp"
+using DataType = Base::mm2<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::mm2<DataType>,
+                           CPlusPlus::OpenMP::mm2<DataType>,
+                           RAJA::Base::mm2<DataType>,
+                           RAJA::OpenMP::mm2<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 5) {
-    std::cerr << "Usage: \n  ./program <ni> <nj> <nk> <nl>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int ni = std::stoi(argv[1]);
-  int nj = std::stoi(argv[2]);
-  int nk = std::stoi(argv[3]);
-  int nl = std::stoi(argv[4]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::mm2<double>{ni, nj, nk, nl};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::mm2<double>{ni, nj, nk, nl};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

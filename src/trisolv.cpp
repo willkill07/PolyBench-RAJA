@@ -1,29 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/trisolv.hpp"
+#include "PolyBench/C++/OpenMP/trisolv.hpp"
+#include "PolyBench/RAJA/Base/trisolv.hpp"
+#include "PolyBench/RAJA/OpenMP/trisolv.hpp"
 
-#include "Base/trisolv.hpp"
-#include "C++/trisolv.hpp"
-#include "RAJA/trisolv.hpp"
+using DataType = Base::trisolv<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::trisolv<DataType>,
+                           CPlusPlus::OpenMP::trisolv<DataType>,
+                           RAJA::Base::trisolv<DataType>,
+                           RAJA::OpenMP::trisolv<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: \n  ./program <n>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int n = std::stoi(argv[1]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::trisolv<double>{n};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::trisolv<double>{n};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

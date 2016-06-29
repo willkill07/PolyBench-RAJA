@@ -1,31 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/gemm.hpp"
+#include "PolyBench/C++/OpenMP/gemm.hpp"
+#include "PolyBench/RAJA/Base/gemm.hpp"
+#include "PolyBench/RAJA/OpenMP/gemm.hpp"
 
-#include "Base/gemm.hpp"
-#include "C++/gemm.hpp"
-#include "RAJA/gemm.hpp"
+using DataType = Base::gemm<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::gemm<DataType>,
+                           CPlusPlus::OpenMP::gemm<DataType>,
+                           RAJA::Base::gemm<DataType>,
+                           RAJA::OpenMP::gemm<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 4) {
-    std::cerr << "Usage: \n  ./program <ni> <nj> <nk>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int ni = std::stoi(argv[1]);
-  int nj = std::stoi(argv[2]);
-  int nk = std::stoi(argv[3]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::gemm<double>{ni, nj, nk};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::gemm<double>{ni, nj, nk};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

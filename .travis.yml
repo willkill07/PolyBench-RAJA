@@ -1,7 +1,9 @@
 sudo: required
 dist: trusty
 language: cpp
-
+env:
+  global:
+    secure: "ltO4pKmeVquayhlgB+pFM17s2CPf0uampc46SwVHy0ePvfqzsTg4MMU70jwWHmEr0+ZZ0h3owpcM6EKgJVIErxH/i6Tc68TwTq23ZVS3S3hbY58HE97Tqc8FyQVoTTJ3E9/fdr/O8sFyqjyLVUNviJWw7UQXZol+WfgBhKRaMzcBuoeMDz+HlOGrUDImxMfb4MmXIsJ38iuEjzUq2072UnP26aHUwK5ZSKvUtx0lys6VJ57Ji6T+tmaJpFuM7WVrVrLYXrVEA3s6XmdJe0ctcUkf3wELlamowgaeEbs9rLXOx6QIcVN/m5tD6PM/MkH70Qb4ZAxr0YOnzud3rCuQKGCfgz4Sl1glIxLfDgLo2AKHBxwugz5xrjA5LpH+KSTKql0uOUcac9wvLFYWwpp9HensQ1Ns8PPkXDKTapR0pEsJgOw3U3s08wU4qD+elgDzvusZVjndLR33GD5qJ5aS7PjTNuvchCQnayhyEqpEZ999MLskqmVX2NnoH1Cj44d52ptymNVTfJknrgCUkKov9am/yBDT+i9ed3PAKRFx6EB5OEUccxcTuTwswe+RqG/T6/s5wcOSv3YHU7jvJxW+fBbgDyX7X/wnZF0mOvzkJbJLB4dCQeO0x5o8tQeW/BxVdBkGlqHehE4Sxh1cD9wGE+WBpykGajrZH13wrjJ5msI="
 matrix:
   include:
    - compiler: gcc-4
@@ -49,25 +51,47 @@ matrix:
            - libiomp5
            - g++-5
      env:
-         - LLVM_PATH=$HOME/llvm/clang+llvm-3.8.0-x86_64-linux-gnu-ubuntu-14.04
-         - COMPILER=$LLVM_PATH/bin/clang++
+         - VERSION=clang+llvm-3.8.0-x86_64-linux-gnu-ubuntu-14.04
+         - COMPILER=$HOME/pkg/llvm-3.8
+         - LLVM_DOWNLOAD=http://llvm.org/releases/3.8.0/${VERSION}.tar.xz
+         - LLVM_PATH=$COMPILER/$VERSION
          - _CC=$LLVM_PATH/bin/clang
          - _CXX=$LLVM_PATH/bin/clang++
+         - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LLVM_PATH/lib
          - OMP_NUM_THREADS=2
          - KMP_AFFINITY=scatter
-         - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LLVM_PATH/lib
-         - DOWNLOAD=http://llvm.org/releases/3.8.0/clang+llvm-3.8.0-x86_64-linux-gnu-ubuntu-14.04.tar.xz
+   - compiler: intel-16
+     addons:
+       apt:
+         sources:
+           - ubuntu-toolchain-r-test
+         packages:
+           - g++-5
+     env:
+         - VERSION=intel-16
+         - COMPILER=$HOME/pkg/$VERSION
+         - INTEL_DOWNLOAD=http://registrationcenter-download.intel.com/akdlm/irc_nas/7997/parallel_studio_xe_2016_online.sh
+         - _CC=icc
+         - _CXX=icpc
+         - OMP_NUM_THREADS=2
+         - KMP_AFFINITY=scatter
 cache:
-    directories:
-        - $HOME/llvm
-        - /opt/intel
+  directories:
+    - $HOME/pkg
 before_install:
   - sudo apt-get update -qq
-  - if [[ -n "$DOWNLOAD" ]] ; then if [[ ! -e "$COMPILER" ]] ; then pushd $HOME; curl -o tarball.tar.xz $DOWNLOAD && cd $HOME/llvm && tar xf $HOME/tarball.tar.xz ; popd ; fi ; fi
+  - mkdir -p $HOME/pkg
+  - if [[ -n "$LLVM_DOWNLOAD" ]] ; then if [[ ! -d "$COMPILER" ]]; then mkdir -p $COMPILER && pushd $HOME && curl -o tarball.tar.xz $LLVM_DOWNLOAD && cd $COMPILER && tar xf $HOME/tarball.tar.xz && popd ; fi ; fi
+  - if [[ -n "$INTEL_DOWNLOAD" ]] ; then if [[ ! -d "$COMPILER" ]]; then ${PWD}/.travis/install-${VERSION}.sh --dest $COMPILER --components icc,openmp --url $INTEL_DOWNLOAD ; fi ; fi
+  - echo $PWD
+  - find $PWD
   - export CC=$_CC
   - export CXX=$_CXX
 script:
-  - mkdir build && cd build
+  - [[ -n $INTEL_DOWNLOAD ]] && source ${PWD}/.travis/config-${VERSION}.sh
+  - $CC --version
+  - $CXX --version
+  - rm -rf build && mkdir build && cd build
   - cmake ..
   - make -j4
-  - ctest -V
+  - make test ARGS=-V

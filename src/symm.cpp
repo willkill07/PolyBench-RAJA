@@ -1,30 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/symm.hpp"
+#include "PolyBench/C++/OpenMP/symm.hpp"
+#include "PolyBench/RAJA/Base/symm.hpp"
+#include "PolyBench/RAJA/OpenMP/symm.hpp"
 
-#include "Base/symm.hpp"
-#include "C++/symm.hpp"
-#include "RAJA/symm.hpp"
+using DataType = Base::symm<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::symm<DataType>,
+                           CPlusPlus::OpenMP::symm<DataType>,
+                           RAJA::Base::symm<DataType>,
+                           RAJA::OpenMP::symm<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
-    std::cerr << "Usage: \n  ./program <m> <n>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int m = std::stoi(argv[1]);
-  int n = std::stoi(argv[2]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::symm<double>{m, n};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::symm<double>{m, n};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

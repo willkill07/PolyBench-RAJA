@@ -1,29 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/floyd-warshall.hpp"
+#include "PolyBench/C++/OpenMP/floyd-warshall.hpp"
+#include "PolyBench/RAJA/Base/floyd-warshall.hpp"
+#include "PolyBench/RAJA/OpenMP/floyd-warshall.hpp"
 
-#include "Base/floyd-warshall.hpp"
-#include "C++/floyd-warshall.hpp"
-#include "RAJA/floyd-warshall.hpp"
+using DataType = Base::floyd_warshall<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::floyd_warshall<DataType>,
+                           CPlusPlus::OpenMP::floyd_warshall<DataType>,
+                           RAJA::Base::floyd_warshall<DataType>,
+                           RAJA::OpenMP::floyd_warshall<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: \n  ./program <n>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int n = std::stoi(argv[1]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::floyd_warshall<int>{n};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::floyd_warshall<int>{n};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

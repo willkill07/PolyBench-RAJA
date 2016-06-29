@@ -1,30 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/jacobi-2d.hpp"
+#include "PolyBench/C++/OpenMP/jacobi-2d.hpp"
+#include "PolyBench/RAJA/Base/jacobi-2d.hpp"
+#include "PolyBench/RAJA/OpenMP/jacobi-2d.hpp"
 
-#include "Base/jacobi-2d.hpp"
-#include "C++/jacobi-2d.hpp"
-#include "RAJA/jacobi-2d.hpp"
+using DataType = Base::jacobi_2d<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::jacobi_2d<DataType>,
+                           CPlusPlus::OpenMP::jacobi_2d<DataType>,
+                           RAJA::Base::jacobi_2d<DataType>,
+                           RAJA::OpenMP::jacobi_2d<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
-    std::cerr << "Usage: \n  ./program <tsteps> <n>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int tsteps = std::stoi(argv[1]);
-  int n = std::stoi(argv[2]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::jacobi_2d<double>{n, tsteps};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::jacobi_2d<double>{n, tsteps};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

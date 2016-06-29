@@ -1,30 +1,31 @@
+#include <array>
 #include <iostream>
+#include <tuple>
 
-#include "PolyBenchRAJA.hpp"
+#include "PolyBench.hpp"
+#include "PolyBench/C++/Base/deriche.hpp"
+#include "PolyBench/C++/OpenMP/deriche.hpp"
+#include "PolyBench/RAJA/Base/deriche.hpp"
+#include "PolyBench/RAJA/OpenMP/deriche.hpp"
 
-#include "Base/deriche.hpp"
-#include "C++/deriche.hpp"
-#include "RAJA/deriche.hpp"
+using DataType = Base::deriche<dummy_t>::default_datatype;
+using Kernels = std::tuple<CPlusPlus::Base::deriche<DataType>,
+                           CPlusPlus::OpenMP::deriche<DataType>,
+                           RAJA::Base::deriche<DataType>,
+                           RAJA::OpenMP::deriche<DataType>>;
+
+using Args = GetArgs<Kernels>;
+constexpr int ARGC = CountArgs<Kernels>::value;
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
-    std::cerr << "Usage: \n  ./program <w> <h>" << std::endl;
-    exit(-1);
+  if (argc != ARGC + 1) {
+    std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
+              << std::endl;
+    return EXIT_FAILURE;
   }
-  int w = std::stoi(argv[1]);
-  int h = std::stoi(argv[1]);
-
-  PolyBenchKernel *vanilla = new CPlusPlus::deriche<float>{w, h};
-  vanilla->run();
-  PolyBenchKernel *raja = new RAJA::deriche<float>{w, h};
-  raja->run();
-
-  bool diff = !vanilla->compare(raja);
-  if (diff)
-    std::cerr << "error beyond epsilon detected" << std::endl;
-
-  delete raja;
-  delete vanilla;
-
-  return (diff);
+  auto args = parseArgs<Args>(argv + 1);
+  KernelPacker versions;
+  versions.addAll<Kernels>(args);
+  versions.run();
+  return versions.check();
 }

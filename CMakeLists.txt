@@ -40,7 +40,7 @@ macro(add_polybench_test test)
     src/${test}.cpp)
 
   target_link_libraries(${test} PolyBench RAJA rt)
-  execute_process(COMMAND grep -i ${test} ${CMAKE_CURRENT_SOURCE_DIR}/common/polybench.spec COMMAND cut -f8 COMMAND head -n1 OUTPUT_VARIABLE testargs OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND grep -i ${test} ${CMAKE_CURRENT_SOURCE_DIR}/common/polybench.spec COMMAND cut -f7 COMMAND head -n1 OUTPUT_VARIABLE testargs OUTPUT_STRIP_TRAILING_WHITESPACE)
   separate_arguments(testargs)
   add_test(NAME test_${test} COMMAND ${PROJECT_BINARY_DIR}/${test} ${testargs})
 
