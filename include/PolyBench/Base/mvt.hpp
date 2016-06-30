@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class mvt : public PolyBenchKernel {
+class mvt : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int>;
   using arg_count = std::tuple_size<args>::type;
@@ -15,7 +17,8 @@ public:
   Arr2D<T> *A;
   Arr1D<T> *x1, *x2, *y_1, *y_2;
 
-  mvt(std::string name, int n_) : PolyBenchKernel{name}, n{n_} {
+  mvt(std::string name, int n_) : PolyBenchKernel{name}, n{n_}
+  {
     A = new Arr2D<T>{n, n};
     x1 = new Arr1D<T>{n};
     x2 = new Arr1D<T>{n};
@@ -23,7 +26,8 @@ public:
     y_2 = new Arr1D<T>{n};
   }
 
-  ~mvt() {
+  ~mvt()
+  {
     delete A;
     delete x1;
     delete x2;
@@ -31,7 +35,8 @@ public:
     delete y_2;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr1D<T>::compare(
              this->x1,
              dynamic_cast<const mvt *>(other)->x1,

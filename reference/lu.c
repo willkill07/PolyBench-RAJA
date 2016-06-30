@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "lu.h"
 
-static void init_array(int n, double A[N][N]) {
+static void init_array(int n, double A[N][N])
+{
   int i, j;
   for (i = 0; i < n; i++) {
     for (j = 0; j <= i; j++)
@@ -34,7 +35,8 @@ static void init_array(int n, double A[N][N]) {
   free((void *)B);
 }
 
-static void print_array(int n, double A[N][N]) {
+static void print_array(int n, double A[N][N])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "A");
@@ -48,7 +50,8 @@ static void print_array(int n, double A[N][N]) {
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-static void kernel_lu(int n, double A[N][N]) {
+static void kernel_lu(int n, double A[N][N])
+{
   int i, j, k;
 #pragma scop
   for (i = 0; i < n; i++) {
@@ -67,7 +70,8 @@ static void kernel_lu(int n, double A[N][N]) {
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   double(*A)[N][N];
   A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));

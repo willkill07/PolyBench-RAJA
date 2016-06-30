@@ -1,12 +1,11 @@
-sudo: required
-dist: trusty
-language: cpp
 env:
   global:
-    secure: "ltO4pKmeVquayhlgB+pFM17s2CPf0uampc46SwVHy0ePvfqzsTg4MMU70jwWHmEr0+ZZ0h3owpcM6EKgJVIErxH/i6Tc68TwTq23ZVS3S3hbY58HE97Tqc8FyQVoTTJ3E9/fdr/O8sFyqjyLVUNviJWw7UQXZol+WfgBhKRaMzcBuoeMDz+HlOGrUDImxMfb4MmXIsJ38iuEjzUq2072UnP26aHUwK5ZSKvUtx0lys6VJ57Ji6T+tmaJpFuM7WVrVrLYXrVEA3s6XmdJe0ctcUkf3wELlamowgaeEbs9rLXOx6QIcVN/m5tD6PM/MkH70Qb4ZAxr0YOnzud3rCuQKGCfgz4Sl1glIxLfDgLo2AKHBxwugz5xrjA5LpH+KSTKql0uOUcac9wvLFYWwpp9HensQ1Ns8PPkXDKTapR0pEsJgOw3U3s08wU4qD+elgDzvusZVjndLR33GD5qJ5aS7PjTNuvchCQnayhyEqpEZ999MLskqmVX2NnoH1Cj44d52ptymNVTfJknrgCUkKov9am/yBDT+i9ed3PAKRFx6EB5OEUccxcTuTwswe+RqG/T6/s5wcOSv3YHU7jvJxW+fBbgDyX7X/wnZF0mOvzkJbJLB4dCQeO0x5o8tQeW/BxVdBkGlqHehE4Sxh1cD9wGE+WBpykGajrZH13wrjJ5msI="
+    secure: "dWaTF2Th2aULLHsi6oj6edIdqeSzZS/6O31Dt3zeZolDXJl5w8BRNJVZ23slkAhQvcLAYb++liwc7EqAXGCET0266y56plxn7x6P6dcFc/ebIBxKtZ3HPSgKKyfoEvRlHicR893nprB+NsVq9D095n2/dAOdV0oy0+ws7DZzxQTLIt2dwpReloxFFP7NyJszLgWTXTfXj+fybNbEhyBQZvlnsb707pgmWh8Sn3GfvZBbHdwUkKO0xncSXaU0KyR6JYpm7ciWNCwclf9d0CPjaTO5Borex/w+B8AIVakB0zk5GPSxCG6FLck4JMgA8Y77N++pMjyyKHA38lMhMTA9gFdzkW0pioE+fxHykVHusiHxgyuyoxlCKN1tM03ef10c/XbkwBBNZVXki8/Vr0QCI7QmBRWc02NPWmJXvmLPRd6UT3Sd0C7NF05OHfwjolutegeclLUaFvvfCU2Zps6epiLBM2LkTo2UScvyd+CEklDDT1/YDq/TiIMeFWVG9IX8dUfvVjAyHicJoMbnlKUrRs8YhJ9vxYfaihq5qra7uhhaRMSrgQACJT0ywqGET0HLzpHG2E3dXgvdwJERj+ZQsD3dwrgfsNX/UQFwplLalOEC3pSGdWF4zfFj4lzXrB25MzAhJFhgGGfV5PSQVm2uVpE4mSNvj4YGoXj0EfLp2Ts="
 matrix:
   include:
-   - compiler: gcc-4
+   - sudo: required
+     dist: trusty
+     compiler: gcc-4
      addons:
        apt:
          sources:
@@ -18,7 +17,9 @@ matrix:
        - _CC=gcc-4.9
        - _CXX=g++-4.9
        - OMP_NUM_THREADS=2
-   - compiler: gcc-5
+   - sudo: required
+     dist: trusty
+     compiler: gcc-5
      addons:
        apt:
          sources:
@@ -30,7 +31,9 @@ matrix:
        - _CC=gcc-5
        - _CXX=g++-5
        - OMP_NUM_THREADS=2
-   - compiler: gcc-6
+   - sudo: required
+     dist: trusty
+     compiler: gcc-6
      addons:
        apt:
          sources:
@@ -43,12 +46,13 @@ matrix:
        - _CXX=g++-6
        - OMP_NUM_THREADS=2
    - compiler: clang-3.8
+     sudo: required
+     dist: trusty
      addons:
        apt:
          sources:
            - ubuntu-toolchain-r-test
          packages:
-           - libiomp5
            - g++-5
      env:
          - VERSION=clang+llvm-3.8.0-x86_64-linux-gnu-ubuntu-14.04
@@ -61,34 +65,25 @@ matrix:
          - OMP_NUM_THREADS=2
          - KMP_AFFINITY=scatter
    - compiler: intel-16
-     addons:
-       apt:
-         sources:
-           - ubuntu-toolchain-r-test
-         packages:
-           - g++-5
+     sudo: required
+     dist: trusty
      env:
          - VERSION=intel-16
-         - COMPILER=$HOME/pkg/$VERSION
+         - COMPILER=$HOME/intel/$VERSION
          - INTEL_DOWNLOAD=http://registrationcenter-download.intel.com/akdlm/irc_nas/7997/parallel_studio_xe_2016_online.sh
          - _CC=icc
          - _CXX=icpc
          - OMP_NUM_THREADS=2
          - KMP_AFFINITY=scatter
-cache:
-  directories:
-    - $HOME/pkg
 before_install:
   - sudo apt-get update -qq
   - mkdir -p $HOME/pkg
   - if [[ -n "$LLVM_DOWNLOAD" ]] ; then if [[ ! -d "$COMPILER" ]]; then mkdir -p $COMPILER && pushd $HOME && curl -o tarball.tar.xz $LLVM_DOWNLOAD && cd $COMPILER && tar xf $HOME/tarball.tar.xz && popd ; fi ; fi
   - if [[ -n "$INTEL_DOWNLOAD" ]] ; then if [[ ! -d "$COMPILER" ]]; then ${PWD}/.travis/install-${VERSION}.sh --dest $COMPILER --components icc,openmp --url $INTEL_DOWNLOAD ; fi ; fi
-  - echo $PWD
-  - find $PWD
   - export CC=$_CC
   - export CXX=$_CXX
 script:
-  - [[ -n $INTEL_DOWNLOAD ]] && source ${PWD}/.travis/config-${VERSION}.sh
+  - if [[ -n $INTEL_DOWNLOAD ]]; then source ${PWD}/.travis/config-${VERSION}.sh ; fi
   - $CC --version
   - $CXX --version
   - rm -rf build && mkdir build && cd build

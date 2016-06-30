@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class covariance : public PolyBenchKernel {
+class covariance : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int, int>;
   using arg_count = std::tuple_size<args>::type;
@@ -17,19 +19,22 @@ public:
   Arr1D<T> *mean;
 
   covariance(std::string name, int n_, int m_)
-      : PolyBenchKernel{name}, n{n_}, m{m_}, float_n{static_cast<T>(n)} {
+      : PolyBenchKernel{name}, n{n_}, m{m_}, float_n{static_cast<T>(n)}
+  {
     data = new Arr2D<T>{n, m};
     cov = new Arr2D<T>{m, m};
     mean = new Arr1D<T>{m};
   }
 
-  ~covariance() {
+  ~covariance()
+  {
     delete data;
     delete cov;
     delete mean;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<T>::compare(
       this->cov,
       dynamic_cast<const covariance *>(other)->cov,

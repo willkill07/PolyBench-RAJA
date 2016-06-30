@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/heat-3d.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class heat_3d : public ::Base::heat_3d<T> {
+class heat_3d : public ::Base::heat_3d<T>
+{
   using Parent = ::Base::heat_3d<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  heat_3d(Args... args) : ::Base::heat_3d<T>{"HEAT-3D - C++ Base", args...} {
+  heat_3d(Args... args) : ::Base::heat_3d<T>{"HEAT-3D - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, B);
     for (int i = 0; i < n; i++)
@@ -26,7 +31,8 @@ public:
             static_cast<T>(i + j + (n - k)) * 10 / (n);
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     USE(READWRITE, A, B);
     for (int t = 1; t <= tsteps; t++) {

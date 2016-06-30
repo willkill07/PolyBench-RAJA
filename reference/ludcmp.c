@@ -13,7 +13,8 @@ static void init_array(
   double A[N][N],
   double b[N],
   double x[N],
-  double y[N]) {
+  double y[N])
+{
   int i, j;
   double fn = (double)n;
   for (i = 0; i < n; i++) {
@@ -45,7 +46,8 @@ static void init_array(
   free((void *)B);
 }
 
-static void print_array(int n, double x[N]) {
+static void print_array(int n, double x[N])
+{
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "x");
@@ -63,7 +65,8 @@ static void kernel_ludcmp(
   double A[N][N],
   double b[N],
   double x[N],
-  double y[N]) {
+  double y[N])
+{
   int i, j, k;
   double w;
 #pragma scop
@@ -98,7 +101,8 @@ static void kernel_ludcmp(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   double(*A)[N][N];
   A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));

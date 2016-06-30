@@ -5,19 +5,24 @@
 
 #include "PolyBench/Base/nussinov.hpp"
 
-namespace RAJA {
-namespace OpenMP {
-class nussinov : public ::Base::nussinov {
+namespace RAJA
+{
+namespace OpenMP
+{
+class nussinov : public ::Base::nussinov
+{
   using Parent = ::Base::nussinov;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  nussinov(Args... args) : ::Base::nussinov{"NUSSINOV - RAJA OpenMP", args...} {
+  nussinov(Args... args) : ::Base::nussinov{"NUSSINOV - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, seq, table);
     forall<simd_exec>(0, n, [=](int i) {
@@ -29,7 +34,8 @@ public:
       [=](int i, int j) { table->at(i, j) = 0; });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, seq);
     USE(READWRITE, table);
     forall<seq_exec>(0, n - 1, [=](int i_) {

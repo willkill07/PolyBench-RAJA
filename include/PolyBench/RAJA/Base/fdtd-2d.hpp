@@ -5,15 +5,20 @@
 
 #include "PolyBench/Base/fdtd-2d.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class fdtd_2d : public ::Base::fdtd_2d<T> {
+class fdtd_2d : public ::Base::fdtd_2d<T>
+{
 public:
   template <typename... Args>
-  fdtd_2d(Args... args) : ::Base::fdtd_2d<T>{"FDTD-2D - RAJA Base", args...} {
+  fdtd_2d(Args... args) : ::Base::fdtd_2d<T>{"FDTD-2D - RAJA Base", args...}
+  {
   }
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, _fict_, tmax, nx, ny);
     USE(READWRITE, ex, ey, hz);
     using init_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
@@ -30,7 +35,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, nx, ny, _fict_, tmax);
     USE(READWRITE, ex, ey, hz);
     using exec_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;

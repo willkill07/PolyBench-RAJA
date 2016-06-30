@@ -16,7 +16,8 @@ static void init_array(
   double *beta,
   double C[NI][NJ],
   double A[NI][NK],
-  double B[NK][NJ]) {
+  double B[NK][NJ])
+{
   int i, j;
   *alpha = 1.5;
   *beta = 1.2;
@@ -31,7 +32,8 @@ static void init_array(
       B[i][j] = (double)(i * (j + 2) % nj) / nj;
 }
 
-static void print_array(int ni, int nj, double C[NI][NJ]) {
+static void print_array(int ni, int nj, double C[NI][NJ])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "C");
@@ -53,7 +55,8 @@ static void kernel_gemm(
   double beta,
   double C[NI][NJ],
   double A[NI][NK],
-  double B[NK][NJ]) {
+  double B[NK][NJ])
+{
   int i, j, k;
 # 71 "gemm.c"
 #pragma scop
@@ -68,7 +71,8 @@ static void kernel_gemm(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int ni = NI;
   int nj = NJ;
   int nk = NK;

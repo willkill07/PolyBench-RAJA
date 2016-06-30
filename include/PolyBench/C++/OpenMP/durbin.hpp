@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/durbin.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class durbin : public ::Base::durbin<T> {
+class durbin : public ::Base::durbin<T>
+{
   using Parent = ::Base::durbin<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  durbin(Args... args) : ::Base::durbin<T>{"DURBIN - C++ OpenMP", args...} {
+  durbin(Args... args) : ::Base::durbin<T>{"DURBIN - C++ OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, r);
     for (int i = 0; i < n; i++) {
@@ -24,7 +29,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, r);
     USE(READWRITE, y);
     Arr1D<T> *z = new Arr1D<T>{n};

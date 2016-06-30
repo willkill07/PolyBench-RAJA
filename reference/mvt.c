@@ -14,7 +14,8 @@ static void init_array(
   double x2[N],
   double y_1[N],
   double y_2[N],
-  double A[N][N]) {
+  double A[N][N])
+{
   int i, j;
   for (i = 0; i < n; i++) {
     x1[i] = (double)(i % n) / n;
@@ -26,7 +27,8 @@ static void init_array(
   }
 }
 
-static void print_array(int n, double x1[N], double x2[N]) {
+static void print_array(int n, double x1[N], double x2[N])
+{
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "x1");
@@ -52,7 +54,8 @@ static void kernel_mvt(
   double x2[N],
   double y_1[N],
   double y_2[N],
-  double A[N][N]) {
+  double A[N][N])
+{
   int i, j;
 #pragma scop
   for (i = 0; i < n; i++)
@@ -64,7 +67,8 @@ static void kernel_mvt(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   double(*A)[N][N];
   A = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));

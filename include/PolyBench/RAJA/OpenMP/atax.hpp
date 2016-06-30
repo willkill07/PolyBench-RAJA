@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/atax.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class atax : public ::Base::atax<T> {
+class atax : public ::Base::atax<T>
+{
   using Parent = ::Base::atax<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   atax(Args... args)
-      : ::Base::atax<T>{std::string{"ATAX - RAJA OpenMP"}, args...} {
+      : ::Base::atax<T>{std::string{"ATAX - RAJA OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     T fn{static_cast<T>(n)};
     USE(READWRITE, x, A);
@@ -36,7 +41,8 @@ public:
       [=](int i, int j) { A->at(i, j) = (T)((i + j) % n) / (5 * m); });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, A, x);
     {
       USE(READWRITE, y, tmp);

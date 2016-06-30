@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class deriche : public PolyBenchKernel {
+class deriche : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int, int>;
   using arg_count = std::tuple_size<args>::type;
@@ -16,21 +18,24 @@ public:
   T alpha;
 
   deriche(std::string name, int w_, int h_)
-      : PolyBenchKernel{name}, w{w_}, h{h_}, alpha{static_cast<T>(0.25)} {
+      : PolyBenchKernel{name}, w{w_}, h{h_}, alpha{static_cast<T>(0.25)}
+  {
     imgIn = new Arr2D<T>{w, h};
     imgOut = new Arr2D<T>{w, h};
     y1 = new Arr2D<T>{w, h};
     y2 = new Arr2D<T>{w, h};
   }
 
-  ~deriche() {
+  ~deriche()
+  {
     delete imgIn;
     delete imgOut;
     delete y1;
     delete y2;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<T>::compare(
       this->imgOut,
       dynamic_cast<const deriche *>(other)->imgOut,

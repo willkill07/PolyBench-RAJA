@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/trmm.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class trmm : public ::Base::trmm<T> {
+class trmm : public ::Base::trmm<T>
+{
   using Parent = ::Base::trmm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  trmm(Args... args) : ::Base::trmm<T>{"TRMM - RAJA OpenMP", args...} {
+  trmm(Args... args) : ::Base::trmm<T>{"TRMM - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, B);
     using init_pol =
@@ -38,7 +43,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, alpha, A);
     USE(READWRITE, B);
     using exec_pol =

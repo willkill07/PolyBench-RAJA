@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class bicg : public PolyBenchKernel {
+class bicg : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int, int>;
   using arg_count = std::tuple_size<args>::type;
@@ -15,7 +17,8 @@ public:
   Arr1D<T> *s, *p, *q, *r;
   int m, n;
 
-  bicg(std::string name, int m_, int n_) : PolyBenchKernel{name}, m{m_}, n{n_} {
+  bicg(std::string name, int m_, int n_) : PolyBenchKernel{name}, m{m_}, n{n_}
+  {
     A = new Arr2D<T>{n, m};
     s = new Arr1D<T>{m};
     q = new Arr1D<T>{n};
@@ -23,7 +26,8 @@ public:
     r = new Arr1D<T>{n};
   }
 
-  ~bicg() {
+  ~bicg()
+  {
     delete A;
     delete s;
     delete q;
@@ -31,7 +35,8 @@ public:
     delete r;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr1D<T>::compare(
              this->s,
              dynamic_cast<const bicg *>(other)->s,

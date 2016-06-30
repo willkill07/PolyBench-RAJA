@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/syrk.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class syrk : public ::Base::syrk<T> {
+class syrk : public ::Base::syrk<T>
+{
   using Parent = ::Base::syrk<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  syrk(Args... args) : ::Base::syrk<T>{"SYRK - RAJA OpenMP", args...} {
+  syrk(Args... args) : ::Base::syrk<T>{"SYRK - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, C);
     using init_pol = NestedPolicy<ExecList<omp_parallel_for_exec, simd_exec>,
@@ -34,7 +39,8 @@ public:
       [=](int i, int j) { C->at(i, j) = static_cast<T>((i * j + 2) % m) / m; });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, alpha, beta, A);
     USE(READWRITE, C);
     using exec_pol = NestedPolicy<ExecList<omp_parallel_for_exec, simd_exec>,

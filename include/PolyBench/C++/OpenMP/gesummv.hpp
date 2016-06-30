@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/gesummv.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class gesummv : public ::Base::gesummv<T> {
+class gesummv : public ::Base::gesummv<T>
+{
   using Parent = ::Base::gesummv<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  gesummv(Args... args) : ::Base::gesummv<T>{"GESUMMV - C++ OpenMP", args...} {
+  gesummv(Args... args) : ::Base::gesummv<T>{"GESUMMV - C++ OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, B, x);
     for (int i = 0; i < n; i++) {
@@ -28,7 +33,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, alpha, beta, A, B, x);
     USE(READWRITE, y, tmp);
     for (int i = 0; i < n; i++) {

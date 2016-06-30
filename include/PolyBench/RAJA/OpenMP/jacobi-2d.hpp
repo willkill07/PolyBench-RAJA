@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/jacobi-2d.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class jacobi_2d : public ::Base::jacobi_2d<T> {
+class jacobi_2d : public ::Base::jacobi_2d<T>
+{
   using Parent = ::Base::jacobi_2d<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   jacobi_2d(Args... args)
-      : ::Base::jacobi_2d<T>{"JACOBI-2D - RAJA OpenMP", args...} {
+      : ::Base::jacobi_2d<T>{"JACOBI-2D - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, B);
     using init_pol =
@@ -35,7 +40,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     USE(READWRITE, A, B);
     using exec_pol =

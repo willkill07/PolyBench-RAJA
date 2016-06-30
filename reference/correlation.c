@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "correlation.h"
 
-static void init_array(int m, int n, double *float_n, double data[N][M]) {
+static void init_array(int m, int n, double *float_n, double data[N][M])
+{
   int i, j;
   *float_n = (double)N;
   for (i = 0; i < N; i++)
@@ -16,7 +17,8 @@ static void init_array(int m, int n, double *float_n, double data[N][M]) {
       data[i][j] = (double)(i * j) / M + i;
 }
 
-static void print_array(int m, double corr[M][M]) {
+static void print_array(int m, double corr[M][M])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "corr");
@@ -37,7 +39,8 @@ static void kernel_correlation(
   double data[N][M],
   double corr[M][M],
   double mean[M],
-  double stddev[M]) {
+  double stddev[M])
+{
   int i, j, k;
   double eps = 0.1;
 #pragma scop
@@ -73,7 +76,8 @@ static void kernel_correlation(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   int m = M;
   double float_n;

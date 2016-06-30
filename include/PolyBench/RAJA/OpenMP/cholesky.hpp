@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/cholesky.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class cholesky : public ::Base::cholesky<T> {
+class cholesky : public ::Base::cholesky<T>
+{
   using Parent = ::Base::cholesky<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   cholesky(Args... args)
-      : ::Base::cholesky<T>{std::string{"CHOLESKY - RAJA OpenMP"}, args...} {
+      : ::Base::cholesky<T>{std::string{"CHOLESKY - RAJA OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     Arr2D<T> *B = new Arr2D<T>{n, n};
@@ -33,7 +38,7 @@ public:
       A->at(i, i) = 1;
     });
     using init_pol =
-      NestedPolicy<ExecList<omp_parallel_for_exec, simd_exec>,
+      NestedPolicy<ExecList<simd_exec, simd_exec>,
                    Tile<TileList<tile_fixed<16>, tile_fixed<16>>>>;
     forallN<init_pol>(
       RangeSegment{0, n},
@@ -54,7 +59,8 @@ public:
     delete B;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     forall<simd_exec>(0, n, [=](int i) {
@@ -64,13 +70,11 @@ public:
         });
         A->at(i, j) /= A->at(j, j);
       });
-      forall<omp_parallel_for_exec>(0, i, [=](int k) {
+      forall<simd_exec>(0, i, [=](int k) {
         A->at(i, i) -= A->at(i, k) * A->at(i, k);
       });
     });
-    forall<omp_parallel_for_exec>(0, n, [=](int i) {
-      A->at(i, i) = sqrt(A->at(i, i));
-    });
+    forall<simd_exec>(0, n, [=](int i) { A->at(i, i) = sqrt(A->at(i, i)); });
   }
 };
 } // OpenMP

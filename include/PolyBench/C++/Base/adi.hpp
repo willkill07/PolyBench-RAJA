@@ -3,27 +3,33 @@
 
 #include "PolyBench/Base/adi.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class adi : public ::Base::adi<T> {
+class adi : public ::Base::adi<T>
+{
   using Parent = ::Base::adi<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  adi(Args... args) : ::Base::adi<T>{std::string{"ADI - C++ Base"}, args...} {
+  adi(Args... args) : ::Base::adi<T>{std::string{"ADI - C++ Base"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READWRITE, u);
     USE(READ, n);
     for (int i = 0; i < n; i++)
       for (int j = 0; j < n; j++)
         u->at(i, j) = static_cast<T>(i + n - j) / n;
   }
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     T DX(static_cast<T>(1.0) / n);
     T DY(static_cast<T>(1.0) / n);

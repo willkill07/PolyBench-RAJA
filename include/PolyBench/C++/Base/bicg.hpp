@@ -3,21 +3,25 @@
 
 #include "PolyBench/Base/bicg.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class bicg : public ::Base::bicg<T> {
+class bicg : public ::Base::bicg<T>
+{
   using Parent = ::Base::bicg<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  bicg(Args... args)
-      : ::Base::bicg<T>{std::string{"BICG - C++ Base"}, args...} {
+  bicg(Args... args) : ::Base::bicg<T>{std::string{"BICG - C++ Base"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, p, r, A);
     for (int i = 0; i < m; i++)
@@ -29,7 +33,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, A, r, p);
     USE(READWRITE, s, q);
     for (int i = 0; i < m; i++)

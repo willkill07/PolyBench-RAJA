@@ -15,7 +15,8 @@ static void init_array(
   double *beta,
   double C[M][N],
   double A[M][M],
-  double B[M][N]) {
+  double B[M][N])
+{
   int i, j;
   *alpha = 1.5;
   *beta = 1.2;
@@ -32,7 +33,8 @@ static void init_array(
   }
 }
 
-static void print_array(int m, int n, double C[M][N]) {
+static void print_array(int m, int n, double C[M][N])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "C");
@@ -53,7 +55,8 @@ static void kernel_symm(
   double beta,
   double C[M][N],
   double A[M][M],
-  double B[M][N]) {
+  double B[M][N])
+{
   int i, j, k;
   double temp2;
 # 75 "symm.c"
@@ -70,7 +73,8 @@ static void kernel_symm(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int m = M;
   int n = N;
   double alpha;

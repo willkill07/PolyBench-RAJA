@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/lu.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class lu : public ::Base::lu<T> {
+class lu : public ::Base::lu<T>
+{
   using Parent = ::Base::lu<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  lu(Args... args) : ::Base::lu<T>{"LU - C++ OpenMP", args...} {
+  lu(Args... args) : ::Base::lu<T>{"LU - C++ OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     Arr2D<T> *B = new Arr2D<T>{n, n};
@@ -41,7 +46,8 @@ public:
     delete B;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     for (int i = 0; i < n; i++) {

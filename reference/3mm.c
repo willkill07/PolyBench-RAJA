@@ -17,7 +17,8 @@ static void init_array(
   double A[NI][NK],
   double B[NK][NJ],
   double C[NJ][NM],
-  double D[NM][NL]) {
+  double D[NM][NL])
+{
   int i, j;
   for (i = 0; i < ni; i++)
     for (j = 0; j < nk; j++)
@@ -33,7 +34,8 @@ static void init_array(
       D[i][j] = (double)((i * (j + 2) + 2) % nk) / (5 * nk);
 }
 
-static void print_array(int ni, int nl, double G[NI][NL]) {
+static void print_array(int ni, int nl, double G[NI][NL])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "G");
@@ -59,7 +61,8 @@ static void kernel_3mm(
   double F[NJ][NL],
   double C[NJ][NM],
   double D[NM][NL],
-  double G[NI][NL]) {
+  double G[NI][NL])
+{
   int i, j, k;
 #pragma scop
   for (i = 0; i < ni; i++)
@@ -83,7 +86,8 @@ static void kernel_3mm(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int ni = NI;
   int nj = NJ;
   int nk = NK;

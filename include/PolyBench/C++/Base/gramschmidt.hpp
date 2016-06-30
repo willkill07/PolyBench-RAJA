@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/gramschmidt.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class gramschmidt : public ::Base::gramschmidt<T> {
+class gramschmidt : public ::Base::gramschmidt<T>
+{
   using Parent = ::Base::gramschmidt<T>;
 
 public:
@@ -14,10 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   gramschmidt(Args... args)
-      : ::Base::gramschmidt<T>{"GRAMSCHMIDT - C++ Base", args...} {
+      : ::Base::gramschmidt<T>{"GRAMSCHMIDT - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, R, Q);
     for (int i = 0; i < m; i++)
@@ -30,7 +35,8 @@ public:
         R->at(i, j) = static_cast<T>(0.0);
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, R, Q);
     for (int k = 0; k < n; k++) {

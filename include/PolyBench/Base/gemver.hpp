@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class gemver : public PolyBenchKernel {
+class gemver : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int>;
   using arg_count = std::tuple_size<args>::type;
@@ -18,7 +20,8 @@ public:
   Arr1D<T> *u1, *u2, *v1, *v2, *w, *x, *y, *z;
 
   gemver(std::string name, int n_)
-      : PolyBenchKernel{name}, n{n_}, fn{static_cast<T>(n)} {
+      : PolyBenchKernel{name}, n{n_}, fn{static_cast<T>(n)}
+  {
     A = new Arr2D<T>{n, n};
     u1 = new Arr1D<T>{n};
     u2 = new Arr1D<T>{n};
@@ -30,7 +33,8 @@ public:
     z = new Arr1D<T>{n};
   }
 
-  ~gemver() {
+  ~gemver()
+  {
     delete A;
     delete u1;
     delete u2;
@@ -42,7 +46,8 @@ public:
     delete z;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr1D<T>::compare(
       this->w, dynamic_cast<const gemver *>(other)->w, static_cast<T>(0));
   }

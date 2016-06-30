@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/bicg.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class bicg : public ::Base::bicg<T> {
+class bicg : public ::Base::bicg<T>
+{
   using Parent = ::Base::bicg<T>;
 
 public:
@@ -14,10 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   bicg(Args... args)
-      : ::Base::bicg<T>{std::string{"BICG - C++ OpenMP"}, args...} {
+      : ::Base::bicg<T>{std::string{"BICG - C++ OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, p, r, A);
     for (int i = 0; i < m; i++)
@@ -29,7 +34,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, A, r, p);
     USE(READWRITE, s, q);
     for (int i = 0; i < m; i++)

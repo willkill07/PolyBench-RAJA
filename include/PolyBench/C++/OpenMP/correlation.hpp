@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/correlation.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class correlation : public ::Base::correlation<T> {
+class correlation : public ::Base::correlation<T>
+{
   using Parent = ::Base::correlation<T>;
 
 public:
@@ -14,11 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   correlation(Args... args)
-      : ::Base::correlation<T>{std::string{"CORRELATION - C++ OpenMP"},
-                               args...} {
+      : ::Base::correlation<T>{std::string{"CORRELATION - C++ OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, data);
     for (int i = 0; i < n; i++)
@@ -26,7 +30,8 @@ public:
         data->at(i, j) = static_cast<T>(i * j) / m + i;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, float_n);
     T eps = static_cast<T>(0.1);
     {

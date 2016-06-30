@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "bicg.h"
 
-static void init_array(int m, int n, double A[N][M], double r[N], double p[M]) {
+static void init_array(int m, int n, double A[N][M], double r[N], double p[M])
+{
   int i, j;
   for (i = 0; i < m; i++)
     p[i] = (double)(i % m) / m;
@@ -19,7 +20,8 @@ static void init_array(int m, int n, double A[N][M], double r[N], double p[M]) {
   }
 }
 
-static void print_array(int m, int n, double s[M], double q[N]) {
+static void print_array(int m, int n, double s[M], double q[N])
+{
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "s");
@@ -46,7 +48,8 @@ static void kernel_bicg(
   double s[M],
   double q[N],
   double p[M],
-  double r[N]) {
+  double r[N])
+{
   int i, j;
 #pragma scop
   for (i = 0; i < m; i++)
@@ -61,7 +64,8 @@ static void kernel_bicg(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   int m = M;
   double(*A)[N][M];

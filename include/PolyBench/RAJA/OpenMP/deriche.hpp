@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/deriche.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class deriche : public ::Base::deriche<T> {
+class deriche : public ::Base::deriche<T>
+{
   using Parent = ::Base::deriche<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   deriche(Args... args)
-      : ::Base::deriche<T>{std::string{"DERICHE - RAJA OpenMP"}, args...} {
+      : ::Base::deriche<T>{std::string{"DERICHE - RAJA OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, w, h);
     USE(READWRITE, imgIn);
     using init_pol =
@@ -34,7 +39,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, w, h, imgIn, alpha);
     T k = (1.0 - exp(-alpha)) * (1.0 - exp(-alpha))
           / (1.0 + 2.0 * alpha * exp(-alpha) - exp(2.0 * alpha));

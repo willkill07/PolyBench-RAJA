@@ -13,7 +13,8 @@ static void init_array(
   int nq,
   int np,
   double A[NR][NQ][NP],
-  double C4[NP][NP]) {
+  double C4[NP][NP])
+{
   int i, j, k;
   for (i = 0; i < nr; i++)
     for (j = 0; j < nq; j++)
@@ -24,7 +25,8 @@ static void init_array(
       C4[i][j] = (double)(i * j % np) / np;
 }
 
-static void print_array(int nr, int nq, int np, double A[NR][NQ][NP]) {
+static void print_array(int nr, int nq, int np, double A[NR][NQ][NP])
+{
   int i, j, k;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "A");
@@ -44,7 +46,8 @@ void kernel_doitgen(
   int np,
   double A[NR][NQ][NP],
   double C4[NP][NP],
-  double sum[NP]) {
+  double sum[NP])
+{
   int r, q, p, s;
 #pragma scop
   for (r = 0; r < nr; r++)
@@ -60,7 +63,8 @@ void kernel_doitgen(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int nr = NR;
   int nq = NQ;
   int np = NP;

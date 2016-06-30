@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/floyd-warshall.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class floyd_warshall : public ::Base::floyd_warshall<T> {
+class floyd_warshall : public ::Base::floyd_warshall<T>
+{
   using Parent = ::Base::floyd_warshall<T>;
 
 public:
@@ -14,10 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   floyd_warshall(Args... args)
-      : ::Base::floyd_warshall<T>{"FLOYD-WARSHALL - C++ Base", args...} {
+      : ::Base::floyd_warshall<T>{"FLOYD-WARSHALL - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, path);
     for (int i = 0; i < n; i++)
@@ -28,7 +33,8 @@ public:
       }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n);
     USE(READWRITE, path);
     for (int k = 0; k < n; k++) {

@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/doitgen.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class doitgen : public ::Base::doitgen<T> {
+class doitgen : public ::Base::doitgen<T>
+{
   using Parent = ::Base::doitgen<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  doitgen(Args... args) : ::Base::doitgen<T>{"DOITGEN - RAJA OpenMP", args...} {
+  doitgen(Args... args) : ::Base::doitgen<T>{"DOITGEN - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, nr, nq, np);
     USE(READWRITE, A, C4);
     using init_pol = NestedPolicy<ExecList<omp_collapse_nowait_exec,
@@ -39,7 +44,8 @@ public:
       [=](int i, int j) { C4->at(i, j) = static_cast<T>(i * j % np) / np; });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, nr, nq, np, C4);
     USE(READWRITE, sum, A);
     using exec_pol =

@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/cholesky.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class cholesky : public ::Base::cholesky<T> {
+class cholesky : public ::Base::cholesky<T>
+{
   using Parent = ::Base::cholesky<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   cholesky(Args... args)
-      : ::Base::cholesky<T>{std::string{"CHOLESKY - RAJA Base"}, args...} {
+      : ::Base::cholesky<T>{std::string{"CHOLESKY - RAJA Base"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     Arr2D<T> *B = new Arr2D<T>{n, n};
@@ -52,7 +57,8 @@ public:
     delete B;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     forall<simd_exec>(0, n, [=](int i) {

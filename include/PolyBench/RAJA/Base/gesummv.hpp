@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/gesummv.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class gesummv : public ::Base::gesummv<T> {
+class gesummv : public ::Base::gesummv<T>
+{
   using Parent = ::Base::gesummv<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  gesummv(Args... args) : ::Base::gesummv<T>{"GESUMMV - RAJA Base", args...} {
+  gesummv(Args... args) : ::Base::gesummv<T>{"GESUMMV - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, B, x);
     forall<simd_exec>(0, n, [=](int i) {
@@ -30,7 +35,8 @@ public:
     });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, alpha, beta, A, B, x);
     USE(READWRITE, y, tmp);
     forall<simd_exec>(0, n, [=](int i) {

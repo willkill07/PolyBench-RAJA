@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/covariance.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class covariance : public ::Base::covariance<T> {
+class covariance : public ::Base::covariance<T>
+{
   using Parent = ::Base::covariance<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   covariance(Args... args)
-      : ::Base::covariance<T>{std::string{"COVARIANCE - RAJA Base"}, args...} {
+      : ::Base::covariance<T>{std::string{"COVARIANCE - RAJA Base"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, data);
     using init_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
@@ -29,7 +34,8 @@ public:
       [=](int i, int j) { data->at(i, j) = (static_cast<T>(i) * j) / m; });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, float_n);
     using exec_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
     {

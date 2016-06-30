@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "covariance.h"
 
-static void init_array(int m, int n, double *float_n, double data[N][M]) {
+static void init_array(int m, int n, double *float_n, double data[N][M])
+{
   int i, j;
   *float_n = (double)n;
   for (i = 0; i < N; i++)
@@ -16,7 +17,8 @@ static void init_array(int m, int n, double *float_n, double data[N][M]) {
       data[i][j] = ((double)i * j) / M;
 }
 
-static void print_array(int m, double cov[M][M]) {
+static void print_array(int m, double cov[M][M])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "cov");
@@ -36,7 +38,8 @@ static void kernel_covariance(
   double float_n,
   double data[N][M],
   double cov[M][M],
-  double mean[M]) {
+  double mean[M])
+{
   int i, j, k;
 #pragma scop
   for (j = 0; j < m; j++) {
@@ -59,7 +62,8 @@ static void kernel_covariance(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   int m = M;
   double float_n;

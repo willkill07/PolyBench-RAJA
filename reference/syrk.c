@@ -14,7 +14,8 @@ static void init_array(
   double *alpha,
   double *beta,
   double C[N][N],
-  double A[N][M]) {
+  double A[N][M])
+{
   int i, j;
   *alpha = 1.5;
   *beta = 1.2;
@@ -26,7 +27,8 @@ static void init_array(
       C[i][j] = (double)((i * j + 2) % m) / m;
 }
 
-static void print_array(int n, double C[N][N]) {
+static void print_array(int n, double C[N][N])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "C");
@@ -46,7 +48,8 @@ static void kernel_syrk(
   double alpha,
   double beta,
   double C[N][N],
-  double A[N][M]) {
+  double A[N][M])
+{
   int i, j, k;
 #pragma scop
   for (i = 0; i < n; i++) {
@@ -60,7 +63,8 @@ static void kernel_syrk(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   int m = M;
   double alpha;

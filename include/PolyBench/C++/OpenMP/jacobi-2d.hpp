@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/jacobi-2d.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class jacobi_2d : public ::Base::jacobi_2d<T> {
+class jacobi_2d : public ::Base::jacobi_2d<T>
+{
   using Parent = ::Base::jacobi_2d<T>;
 
 public:
@@ -14,10 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   jacobi_2d(Args... args)
-      : ::Base::jacobi_2d<T>{"JACOBI-2D - C++ OpenMP", args...} {
+      : ::Base::jacobi_2d<T>{"JACOBI-2D - C++ OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, B);
     for (int i = 0; i < n; i++)
@@ -27,7 +32,8 @@ public:
       }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     USE(READWRITE, A, B);
     for (int t = 0; t < tsteps; t++) {

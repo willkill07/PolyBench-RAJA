@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/deriche.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class deriche : public ::Base::deriche<T> {
+class deriche : public ::Base::deriche<T>
+{
   using Parent = ::Base::deriche<T>;
 
 public:
@@ -14,10 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   deriche(Args... args)
-      : ::Base::deriche<T>{std::string{"DERICHE - C++ Base"}, args...} {
+      : ::Base::deriche<T>{std::string{"DERICHE - C++ Base"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, w, h);
     USE(READWRITE, imgIn);
     for (int i = 0; i < w; i++)
@@ -26,7 +31,8 @@ public:
           static_cast<T>((313 * i + 991 * j) % 65536) / static_cast<T>(65535.0);
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, alpha, w, h, imgIn);
     USE(READWRITE, imgOut, y1, y2);
     T xm1, tm1, ym1, ym2;

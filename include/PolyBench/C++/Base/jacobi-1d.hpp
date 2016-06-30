@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/jacobi-1d.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class jacobi_1d : public ::Base::jacobi_1d<T> {
+class jacobi_1d : public ::Base::jacobi_1d<T>
+{
   using Parent = ::Base::jacobi_1d<T>;
 
 public:
@@ -14,10 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   jacobi_1d(Args... args)
-      : ::Base::jacobi_1d<T>{"JACOBI-1D - C++ Base", args...} {
+      : ::Base::jacobi_1d<T>{"JACOBI-1D - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, B);
     for (int i = 0; i < n; i++) {
@@ -26,7 +31,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     USE(READWRITE, A, B);
     for (int t = 0; t < tsteps; t++) {

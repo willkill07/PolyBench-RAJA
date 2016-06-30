@@ -11,16 +11,19 @@
 
 #define USE(f, ...) EVAL(MAP1(f, __VA_ARGS__, (), 0))
 
-class PolyBenchKernel {
+class PolyBenchKernel
+{
   virtual bool compare(const PolyBenchKernel *) = 0;
   virtual void init() = 0;
   virtual void exec() = 0;
 
 public:
   std::string name;
-  virtual void teardown() {
+  virtual void teardown()
+  {
   }
-  bool compareTo(const PolyBenchKernel *other) {
+  bool compareTo(const PolyBenchKernel *other)
+  {
     std::cout << "Comparing [" << this->name << "] to [" << other->name << "]"
               << std::endl;
     return this->compare(other);

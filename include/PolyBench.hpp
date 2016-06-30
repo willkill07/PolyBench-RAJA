@@ -27,9 +27,11 @@ using GetArgs = typename std::tuple_element<0, T>::type::args;
 
 using dummy_t = double;
 
-namespace detail {
+namespace detail
+{
 template <typename TT, typename Arr, std::size_t... I>
-TT parseArgs(Arr &&argv, util::index_sequence<I...>) {
+TT parseArgs(Arr &&argv, util::index_sequence<I...>)
+{
   return std::make_tuple(
     ::util::convert::strTo<typename std::tuple_element<I, TT>::type>(
       argv[I])...);
@@ -39,15 +41,18 @@ TT parseArgs(Arr &&argv, util::index_sequence<I...>) {
 template <typename TT,
           typename Arr,
           typename Ind = util::make_index_sequence<std::tuple_size<TT>::value>>
-TT parseArgs(Arr &&argv) {
+TT parseArgs(Arr &&argv)
+{
   return detail::parseArgs<TT>(argv, Ind{});
 }
 
-class KernelPacker {
+class KernelPacker
+{
   std::vector<std::unique_ptr<PolyBenchKernel>> kernels;
 
   template <typename T, size_t... I, typename... A>
-  std::unique_ptr<T> create(std::tuple<A...> args, util::index_sequence<I...>) {
+  std::unique_ptr<T> create(std::tuple<A...> args, util::index_sequence<I...>)
+  {
     // We need to invoke the appropriate constructor
     // Steps:
     //  - expand parameter pack through std::get<I>(args)...
@@ -65,11 +70,17 @@ class KernelPacker {
 
   template <std::size_t I = 0, typename TupleType, typename Tp>
   inline typename std::enable_if<I == std::tuple_size<Tp>::value, void>::type
-  add_impl(TupleType &&args) {
+  add_impl(TupleType &&args)
+  {
   }
 
-  template <std::size_t I = 0, typename TupleType, typename Tp, typename = typename std::enable_if< I < std::tuple_size<Tp>::value>::type>
-    inline void add_impl(TupleType &&args) {
+  template <std::size_t I = 0,
+            typename TupleType,
+            typename Tp,
+            typename = typename std::
+              enable_if<I<std::tuple_size<Tp>::value>::type> inline void
+                add_impl(TupleType &&args)
+  {
     // Type of current execution
     using Type = typename std::tuple_element<I, Tp>::type;
     // Type of args
@@ -83,21 +94,25 @@ class KernelPacker {
 
 public:
   template <typename V, typename TupleType>
-  void addAll(TupleType &&args) {
+  void addAll(TupleType &&args)
+  {
     add_impl<0, TupleType, V>(args);
   }
 
   template <typename T, typename TupleType>
-  void add(TupleType &&args) {
+  void add(TupleType &&args)
+  {
     addAll<std::tuple<T>>(args);
   }
 
-  inline void run() {
+  inline void run()
+  {
     for (auto &k : kernels)
       k->run();
   }
 
-  inline bool check() {
+  inline bool check()
+  {
     return !std::accumulate(
       std::begin(kernels) + 1,
       std::end(kernels),

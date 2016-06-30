@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/doitgen.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class doitgen : public ::Base::doitgen<T> {
+class doitgen : public ::Base::doitgen<T>
+{
   using Parent = ::Base::doitgen<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  doitgen(Args... args) : ::Base::doitgen<T>{"DOITGEN - C++ OpenMP", args...} {
+  doitgen(Args... args) : ::Base::doitgen<T>{"DOITGEN - C++ OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, nr, nq, np);
     USE(READWRITE, A, C4);
     for (int i = 0; i < nr; i++)
@@ -28,7 +33,8 @@ public:
         C4->at(i, j) = static_cast<T>(i * j % np) / np;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, nr, nq, np, C4);
     USE(READWRITE, sum, A);
     for (int r = 0; r < nr; r++)

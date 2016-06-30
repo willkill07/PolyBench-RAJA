@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class fdtd_2d : public PolyBenchKernel {
+class fdtd_2d : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int, int, int>;
   using arg_count = std::tuple_size<args>::type;
@@ -16,21 +18,24 @@ public:
   int nx, ny, tmax;
 
   fdtd_2d(std::string name, int nx_, int ny_, int tmax_)
-      : PolyBenchKernel{name}, nx{nx_}, ny{ny_}, tmax{tmax_} {
+      : PolyBenchKernel{name}, nx{nx_}, ny{ny_}, tmax{tmax_}
+  {
     ex = new Arr2D<T>{nx, ny};
     ey = new Arr2D<T>{nx, ny};
     hz = new Arr2D<T>{nx, ny};
     _fict_ = new Arr1D<T>{tmax};
   }
 
-  ~fdtd_2d() {
+  ~fdtd_2d()
+  {
     delete ex;
     delete ey;
     delete hz;
     delete _fict_;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<T>::compare(
              this->ex,
              dynamic_cast<const fdtd_2d *>(other)->ex,

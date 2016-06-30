@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/gemm.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class gemm : public ::Base::gemm<T> {
+class gemm : public ::Base::gemm<T>
+{
   using Parent = ::Base::gemm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  gemm(Args... args) : ::Base::gemm<T>{"GEMM - RAJA OpenMP", args...} {
+  gemm(Args... args) : ::Base::gemm<T>{"GEMM - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, ni, nj, nk);
     USE(READWRITE, A, B, C);
     using init_pol =
@@ -44,7 +49,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, ni, nj, nk, alpha, beta, A, B);
     USE(READWRITE, C);
     forall<omp_parallel_for_exec>(0, ni, [=](int i) {

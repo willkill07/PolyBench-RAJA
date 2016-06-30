@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/trmm.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class trmm : public ::Base::trmm<T> {
+class trmm : public ::Base::trmm<T>
+{
   using Parent = ::Base::trmm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  trmm(Args... args) : ::Base::trmm<T>{"TRMM - RAJA Base", args...} {
+  trmm(Args... args) : ::Base::trmm<T>{"TRMM - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, B);
     using init_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
@@ -36,7 +41,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, alpha, A);
     USE(READWRITE, B);
     using init_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;

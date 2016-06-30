@@ -13,7 +13,8 @@ static void init_array(
   int n,
   double *alpha,
   double A[M][M],
-  double B[M][N]) {
+  double B[M][N])
+{
   int i, j;
   *alpha = 1.5;
   for (i = 0; i < m; i++) {
@@ -27,7 +28,8 @@ static void init_array(
   }
 }
 
-static void print_array(int m, int n, double B[M][N]) {
+static void print_array(int m, int n, double B[M][N])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "B");
@@ -46,7 +48,8 @@ static void kernel_trmm(
   int n,
   double alpha,
   double A[M][M],
-  double B[M][N]) {
+  double B[M][N])
+{
   int i, j, k;
 # 68 "trmm.c"
 #pragma scop
@@ -59,7 +62,8 @@ static void kernel_trmm(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int m = M;
   int n = N;
   double alpha;

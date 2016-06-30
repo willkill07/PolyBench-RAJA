@@ -5,8 +5,10 @@
 
 using base_t = char;
 
-namespace Base {
-class nussinov : public PolyBenchKernel {
+namespace Base
+{
+class nussinov : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int>;
   using arg_count = std::tuple_size<args>::type;
@@ -16,17 +18,20 @@ public:
   Arr2D<int> *table;
   Arr1D<base_t> *seq;
 
-  nussinov(std::string name, int n_) : PolyBenchKernel{name}, n{n_} {
+  nussinov(std::string name, int n_) : PolyBenchKernel{name}, n{n_}
+  {
     table = new Arr2D<int>{n, n};
     seq = new Arr1D<base_t>{n};
   }
 
-  ~nussinov() {
+  ~nussinov()
+  {
     delete table;
     delete seq;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<int>::
       compare(this->table, dynamic_cast<const nussinov *>(other)->table, 0);
   }

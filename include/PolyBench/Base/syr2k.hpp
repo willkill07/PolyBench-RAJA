@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class syr2k : public PolyBenchKernel {
+class syr2k : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int, int>;
   using arg_count = std::tuple_size<args>::type;
@@ -15,20 +17,22 @@ public:
   T alpha{static_cast<T>(1.5)}, beta{static_cast<T>(1.2)};
   Arr2D<T> *A, *C, *B;
 
-  syr2k(std::string name, int m_, int n_)
-      : PolyBenchKernel{name}, m{m_}, n{n_} {
+  syr2k(std::string name, int m_, int n_) : PolyBenchKernel{name}, m{m_}, n{n_}
+  {
     A = new Arr2D<T>{n, m};
     C = new Arr2D<T>{n, n};
     B = new Arr2D<T>{n, m};
   }
 
-  ~syr2k() {
+  ~syr2k()
+  {
     delete A;
     delete C;
     delete B;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<T>::compare(
       this->C, dynamic_cast<const syr2k *>(other)->C, static_cast<T>(1.0e-3));
   }

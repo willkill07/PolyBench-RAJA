@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "heat-3d.h"
 
-static void init_array(int n, double A[N][N][N], double B[N][N][N]) {
+static void init_array(int n, double A[N][N][N], double B[N][N][N])
+{
   int i, j, k;
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++)
@@ -16,7 +17,8 @@ static void init_array(int n, double A[N][N][N], double B[N][N][N]) {
         A[i][j][k] = B[i][j][k] = (double)(i + j + (n - k)) * 10 / (n);
 }
 
-static void print_array(int n, double A[N][N][N]) {
+static void print_array(int n, double A[N][N][N])
+{
   int i, j, k;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "A");
@@ -35,7 +37,8 @@ static void kernel_heat_3d(
   int tsteps,
   int n,
   double A[N][N][N],
-  double B[N][N][N]) {
+  double B[N][N][N])
+{
   int t, i, j, k;
 #pragma scop
   for (t = 1; t <= TSTEPS; t++) {
@@ -65,7 +68,8 @@ static void kernel_heat_3d(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   int tsteps = TSTEPS;
   double(*A)[N][N][N];

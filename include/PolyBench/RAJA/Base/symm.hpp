@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/symm.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class symm : public ::Base::symm<T> {
+class symm : public ::Base::symm<T>
+{
   using Parent = ::Base::symm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  symm(Args... args) : ::Base::symm<T>{"SYMM - RAJA Base", args...} {
+  symm(Args... args) : ::Base::symm<T>{"SYMM - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, C, B);
     forall<simd_exec>(0, m, [=](int i) {
@@ -34,7 +39,8 @@ public:
     });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, alpha, beta, A, B);
     USE(READWRITE, C);
     forall<simd_exec>(0, m, [=](int i) {

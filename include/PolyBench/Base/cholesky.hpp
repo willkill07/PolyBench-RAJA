@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class cholesky : public PolyBenchKernel {
+class cholesky : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int>;
   using arg_count = std::tuple_size<args>::type;
@@ -14,13 +16,16 @@ public:
   Arr2D<T> *A;
   int n;
 
-  cholesky(std::string name, int n_) : PolyBenchKernel{name}, n{n_} {
+  cholesky(std::string name, int n_) : PolyBenchKernel{name}, n{n_}
+  {
     A = new Arr2D<T>{n, n};
   }
-  ~cholesky() {
+  ~cholesky()
+  {
     delete A;
   }
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<T>::compare(
       this->A,
       dynamic_cast<const cholesky *>(other)->A,

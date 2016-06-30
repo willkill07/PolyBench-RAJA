@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/bicg.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class bicg : public ::Base::bicg<T> {
+class bicg : public ::Base::bicg<T>
+{
   using Parent = ::Base::bicg<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   bicg(Args... args)
-      : ::Base::bicg<T>{std::string{"BICG - RAJA OpenMP"}, args...} {
+      : ::Base::bicg<T>{std::string{"BICG - RAJA OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, p, r, A);
     forall<omp_parallel_for_exec>(0, std::max(m, n), [=](int i) {
@@ -38,7 +43,8 @@ public:
       [=](int i, int j) { A->at(i, j) = static_cast<T>(i * (j + 1) % n) / n; });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, A, r, p);
     USE(READWRITE, s, q);
     forall<omp_parallel_for_exec>(0, std::max(m, n), [=](int i) {

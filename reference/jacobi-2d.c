@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "jacobi-2d.h"
 
-static void init_array(int n, double A[N][N], double B[N][N]) {
+static void init_array(int n, double A[N][N], double B[N][N])
+{
   int i, j;
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++) {
@@ -17,7 +18,8 @@ static void init_array(int n, double A[N][N], double B[N][N]) {
     }
 }
 
-static void print_array(int n, double A[N][N]) {
+static void print_array(int n, double A[N][N])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "A");
@@ -31,11 +33,8 @@ static void print_array(int n, double A[N][N]) {
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-static void kernel_jacobi_2d(
-  int tsteps,
-  int n,
-  double A[N][N],
-  double B[N][N]) {
+static void kernel_jacobi_2d(int tsteps, int n, double A[N][N], double B[N][N])
+{
   int t, i, j;
 #pragma scop
   for (t = 0; t < tsteps; t++) {
@@ -51,7 +50,8 @@ static void kernel_jacobi_2d(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   int tsteps = TSTEPS;
   double(*A)[N][N];

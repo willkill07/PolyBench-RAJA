@@ -20,7 +20,8 @@ static void init_array(
   double w[N],
   double x[N],
   double y[N],
-  double z[N]) {
+  double z[N])
+{
   int i, j;
   *alpha = 1.5;
   *beta = 1.2;
@@ -39,7 +40,8 @@ static void init_array(
   }
 }
 
-static void print_array(int n, double w[N]) {
+static void print_array(int n, double w[N])
+{
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "w");
@@ -64,7 +66,8 @@ static void kernel_gemver(
   double w[N],
   double x[N],
   double y[N],
-  double z[N]) {
+  double z[N])
+{
   int i, j;
 #pragma scop
   for (i = 0; i < n; i++)
@@ -81,7 +84,8 @@ static void kernel_gemver(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   double alpha;
   double beta;

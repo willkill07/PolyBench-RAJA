@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/gemver.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class gemver : public ::Base::gemver<T> {
+class gemver : public ::Base::gemver<T>
+{
   using Parent = ::Base::gemver<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  gemver(Args... args) : ::Base::gemver<T>{"GEMVER - C++ Base", args...} {
+  gemver(Args... args) : ::Base::gemver<T>{"GEMVER - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, fn, n);
     USE(READWRITE, u1, u2, v1, v2, w, x, y, z, A);
     for (int i = 0; i < n; i++) {
@@ -33,7 +38,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, alpha, beta, u1, u2, v1, v2, y, z, A);
     USE(READWRITE, x, w);
     for (int i = 0; i < n; i++)

@@ -12,7 +12,8 @@ typedef char base;
 #define match(b1, b2) (((b1) + (b2)) == 3 ? 1 : 0)
 #define max_score(s1, s2) ((s1 >= s2) ? s1 : s2)
 
-static void init_array(int n, base seq[N], int table[N][N]) {
+static void init_array(int n, base seq[N], int table[N][N])
+{
   int i, j;
   for (i = 0; i < n; i++) {
     seq[i] = (base)((i + 1) % 4);
@@ -22,7 +23,8 @@ static void init_array(int n, base seq[N], int table[N][N]) {
       table[i][j] = 0;
 }
 
-static void print_array(int n, int table[N][N]) {
+static void print_array(int n, int table[N][N])
+{
   int i, j;
   int t = 0;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
@@ -40,7 +42,8 @@ static void print_array(int n, int table[N][N]) {
 }
 # 62 "nussinov.c"
 
-static void kernel_nussinov(int n, base seq[N], int table[N][N]) {
+static void kernel_nussinov(int n, base seq[N], int table[N][N])
+{
   int i, j, k;
 #pragma scop
   for (i = n - 1; i >= 0; i--) {
@@ -74,7 +77,8 @@ static void kernel_nussinov(int n, base seq[N], int table[N][N]) {
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   base(*seq)[N];
   seq = (base(*)[N])polybench_alloc_data(N, sizeof(base));

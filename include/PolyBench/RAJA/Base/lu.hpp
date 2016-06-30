@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/lu.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class lu : public ::Base::lu<T> {
+class lu : public ::Base::lu<T>
+{
   using Parent = ::Base::lu<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  lu(Args... args) : ::Base::lu<T>{"LU - RAJA Base", args...} {
+  lu(Args... args) : ::Base::lu<T>{"LU - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     using init_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
@@ -46,7 +51,8 @@ public:
     delete B;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     using exec_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;

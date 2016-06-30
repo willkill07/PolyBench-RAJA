@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/3mm.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class mm3 : public ::Base::mm3<T> {
+class mm3 : public ::Base::mm3<T>
+{
   using Parent = ::Base::mm3<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  mm3(Args... args) : ::Base::mm3<T>{std::string{"3MM - C++ OpenMP"}, args...} {
+  mm3(Args... args) : ::Base::mm3<T>{std::string{"3MM - C++ OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READWRITE, A, B, C, D);
     USE(READ, ni, nj, nk, nl, nm);
 
@@ -34,7 +39,8 @@ public:
         D->at(i, j) = static_cast<T>((i * (j + 2) + 2) % nk) / (5 * nk);
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READWRITE, E, F, G);
     USE(READ, ni, nj, nk, nl, nm, A, B, C, D);
     for (int i = 0; i < ni; i++)

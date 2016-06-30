@@ -5,21 +5,25 @@
 
 #include "PolyBench/Base/2mm.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class mm2 : public ::Base::mm2<T> {
+class mm2 : public ::Base::mm2<T>
+{
   using Parent = ::Base::mm2<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  mm2(Args... args)
-      : ::Base::mm2<T>{std::string{"2MM - RAJA OpenMP"}, args...} {
+  mm2(Args... args) : ::Base::mm2<T>{std::string{"2MM - RAJA OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, ni, nj, nk, nl);
     USE(READWRITE, alpha, beta, A, B, C, D);
 
@@ -59,7 +63,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, ni, nj, nk, nl, A, B, C, alpha, beta);
     using exec_pol =
       NestedPolicy<ExecList<omp_parallel_for_exec, simd_exec>,

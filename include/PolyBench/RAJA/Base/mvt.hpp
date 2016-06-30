@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/mvt.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class mvt : public ::Base::mvt<T> {
+class mvt : public ::Base::mvt<T>
+{
   using Parent = ::Base::mvt<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  mvt(Args... args) : ::Base::mvt<T>{"MVT - RAJA Base", args...} {
+  mvt(Args... args) : ::Base::mvt<T>{"MVT - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, x1, x2, y_1, y_2);
     forall<simd_exec>(0, n, [=](int i) {
@@ -32,7 +37,8 @@ public:
     });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, A, y_1, y_2);
     USE(READWRITE, x1, x2);
     using pol_exec = NestedPolicy<ExecList<simd_exec, simd_exec>>;

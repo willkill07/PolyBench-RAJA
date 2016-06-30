@@ -16,7 +16,8 @@ using Kernels = std::tuple<CPlusPlus::Base::nussinov,
 using Args = GetArgs<Kernels>;
 constexpr int ARGC = CountArgs<Kernels>::value;
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   if (argc != ARGC + 1) {
     std::cerr << "Invalid number of parameters (expected " << ARGC << ")"
               << std::endl;

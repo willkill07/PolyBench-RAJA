@@ -13,7 +13,8 @@ static void init_array(
   int h,
   float *alpha,
   float imgIn[W][H],
-  float imgOut[W][H]) {
+  float imgOut[W][H])
+{
   int i, j;
   *alpha = 0.25;
   for (i = 0; i < w; i++)
@@ -21,7 +22,8 @@ static void init_array(
       imgIn[i][j] = (float)((313 * i + 991 * j) % 65536) / 65535.0f;
 }
 
-static void print_array(int w, int h, float imgOut[W][H]) {
+static void print_array(int w, int h, float imgOut[W][H])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "imgOut");
@@ -42,7 +44,8 @@ static void kernel_deriche(
   float imgIn[W][H],
   float imgOut[W][H],
   float y1[W][H],
-  float y2[W][H]) {
+  float y2[W][H])
+{
   int i, j;
   float xm1, tm1, ym1, ym2;
   float xp1, xp2;
@@ -119,7 +122,8 @@ static void kernel_deriche(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int w = W;
   int h = H;
   float alpha;

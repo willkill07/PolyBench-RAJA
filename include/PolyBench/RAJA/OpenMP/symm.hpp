@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/symm.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class symm : public ::Base::symm<T> {
+class symm : public ::Base::symm<T>
+{
   using Parent = ::Base::symm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  symm(Args... args) : ::Base::symm<T>{"SYMM - RAJA OpenMP", args...} {
+  symm(Args... args) : ::Base::symm<T>{"SYMM - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, C, B);
     using init_pol =
@@ -39,7 +44,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, alpha, beta, A, B);
     USE(READWRITE, C);
     using exec_pol =

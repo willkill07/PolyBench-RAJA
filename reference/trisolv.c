@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "trisolv.h"
 
-static void init_array(int n, double L[N][N], double x[N], double b[N]) {
+static void init_array(int n, double L[N][N], double x[N], double b[N])
+{
   int i, j;
   for (i = 0; i < n; i++) {
     x[i] = -999;
@@ -18,7 +19,8 @@ static void init_array(int n, double L[N][N], double x[N], double b[N]) {
   }
 }
 
-static void print_array(int n, double x[N]) {
+static void print_array(int n, double x[N])
+{
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "x");
@@ -31,7 +33,8 @@ static void print_array(int n, double x[N]) {
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-static void kernel_trisolv(int n, double L[N][N], double x[N], double b[N]) {
+static void kernel_trisolv(int n, double L[N][N], double x[N], double b[N])
+{
   int i, j;
 #pragma scop
   for (i = 0; i < n; i++) {
@@ -43,7 +46,8 @@ static void kernel_trisolv(int n, double L[N][N], double x[N], double b[N]) {
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   double(*L)[N][N];
   L = (double(*)[N][N])polybench_alloc_data((N) * (N), sizeof(double));

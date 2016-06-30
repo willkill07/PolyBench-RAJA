@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/trisolv.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class trisolv : public ::Base::trisolv<T> {
+class trisolv : public ::Base::trisolv<T>
+{
   using Parent = ::Base::trisolv<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  trisolv(Args... args) : ::Base::trisolv<T>{"TRISOLV - C++ Base", args...} {
+  trisolv(Args... args) : ::Base::trisolv<T>{"TRISOLV - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, x, b, L);
     for (int i = 0; i < n; i++) {
@@ -27,7 +32,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, b, L);
     USE(READWRITE, x);
     for (int i = 0; i < n; i++) {

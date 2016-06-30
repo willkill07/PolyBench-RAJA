@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/seidel-2d.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class seidel_2d : public ::Base::seidel_2d<T> {
+class seidel_2d : public ::Base::seidel_2d<T>
+{
   using Parent = ::Base::seidel_2d<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   seidel_2d(Args... args)
-      : ::Base::seidel_2d<T>{"SEIDEL-2D - RAJA OpenMP", args...} {
+      : ::Base::seidel_2d<T>{"SEIDEL-2D - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     using init_pol =
@@ -33,7 +38,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     USE(READWRITE, A);
     using exec_pol =

@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/covariance.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class covariance : public ::Base::covariance<T> {
+class covariance : public ::Base::covariance<T>
+{
   using Parent = ::Base::covariance<T>;
 
 public:
@@ -14,10 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   covariance(Args... args)
-      : ::Base::covariance<T>{std::string{"COVARIANCE - C++ OpenMP"}, args...} {
+      : ::Base::covariance<T>{std::string{"COVARIANCE - C++ OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, data);
     for (int i = 0; i < n; i++)
@@ -25,7 +30,8 @@ public:
         data->at(i, j) = (static_cast<T>(i) * j) / m;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, float_n);
     {
       USE(READ, data);

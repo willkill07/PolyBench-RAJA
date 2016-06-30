@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/jacobi-1d.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class jacobi_1d : public ::Base::jacobi_1d<T> {
+class jacobi_1d : public ::Base::jacobi_1d<T>
+{
   using Parent = ::Base::jacobi_1d<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   jacobi_1d(Args... args)
-      : ::Base::jacobi_1d<T>{"JACOBI-1D - RAJA Base", args...} {
+      : ::Base::jacobi_1d<T>{"JACOBI-1D - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, B);
     forall<simd_exec>(0, n, [=](int i) {
@@ -28,7 +33,8 @@ public:
     });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     USE(READWRITE, A, B);
     for (int t = 0; t < tsteps; t++) {

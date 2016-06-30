@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/trisolv.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class trisolv : public ::Base::trisolv<T> {
+class trisolv : public ::Base::trisolv<T>
+{
   using Parent = ::Base::trisolv<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  trisolv(Args... args) : ::Base::trisolv<T>{"TRISOLV - RAJA Base", args...} {
+  trisolv(Args... args) : ::Base::trisolv<T>{"TRISOLV - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, x, b, L);
     forall<simd_exec>(0, n, [=](int i) {
@@ -30,7 +35,8 @@ public:
     });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, b, L);
     USE(READWRITE, x);
     forall<simd_exec>(0, n, [=](int i) {

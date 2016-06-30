@@ -5,15 +5,20 @@
 
 #include "PolyBench/Base/fdtd-2d.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class fdtd_2d : public ::Base::fdtd_2d<T> {
+class fdtd_2d : public ::Base::fdtd_2d<T>
+{
 public:
   template <typename... Args>
-  fdtd_2d(Args... args) : ::Base::fdtd_2d<T>{"FDTD-2D - RAJA OpenMP", args...} {
+  fdtd_2d(Args... args) : ::Base::fdtd_2d<T>{"FDTD-2D - RAJA OpenMP", args...}
+  {
   }
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, _fict_, tmax, nx, ny);
     USE(READWRITE, ex, ey, hz);
     using init_pol =
@@ -32,7 +37,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, nx, ny, _fict_, tmax);
     USE(READWRITE, ex, ey, hz);
     using exec_pol =

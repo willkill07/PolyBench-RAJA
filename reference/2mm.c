@@ -18,7 +18,8 @@ static void init_array(
   double A[NI][NK],
   double B[NK][NJ],
   double C[NJ][NL],
-  double D[NI][NL]) {
+  double D[NI][NL])
+{
   int i, j;
   *alpha = 1.5;
   *beta = 1.2;
@@ -36,7 +37,8 @@ static void init_array(
       D[i][j] = (double)(i * (j + 2) % nk) / nk;
 }
 
-static void print_array(int ni, int nl, double D[NI][NL]) {
+static void print_array(int ni, int nl, double D[NI][NL])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "D");
@@ -61,7 +63,8 @@ static void kernel_2mm(
   double A[NI][NK],
   double B[NK][NJ],
   double C[NJ][NL],
-  double D[NI][NL]) {
+  double D[NI][NL])
+{
   int i, j, k;
 #pragma scop
   for (i = 0; i < ni; i++)
@@ -79,7 +82,8 @@ static void kernel_2mm(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int ni = NI;
   int nj = NJ;
   int nk = NK;

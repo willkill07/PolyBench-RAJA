@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/gemm.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class gemm : public ::Base::gemm<T> {
+class gemm : public ::Base::gemm<T>
+{
   using Parent = ::Base::gemm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  gemm(Args... args) : ::Base::gemm<T>{"GEMM - RAJA Base", args...} {
+  gemm(Args... args) : ::Base::gemm<T>{"GEMM - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, ni, nj, nk);
     USE(READWRITE, A, B, C);
     using init_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
@@ -42,7 +47,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, ni, nj, nk, alpha, beta, A, B);
     USE(READWRITE, C);
     using exec_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;

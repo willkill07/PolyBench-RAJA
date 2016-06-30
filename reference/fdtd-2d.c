@@ -15,7 +15,8 @@ static void init_array(
   double ex[NX][NY],
   double ey[NX][NY],
   double hz[NX][NY],
-  double _fict_[TMAX]) {
+  double _fict_[TMAX])
+{
   int i, j;
   for (i = 0; i < tmax; i++)
     _fict_[i] = (double)i;
@@ -32,7 +33,8 @@ static void print_array(
   int ny,
   double ex[NX][NY],
   double ey[NX][NY],
-  double hz[NX][NY]) {
+  double hz[NX][NY])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "ex");
@@ -69,7 +71,8 @@ static void kernel_fdtd_2d(
   double ex[NX][NY],
   double ey[NX][NY],
   double hz[NX][NY],
-  double _fict_[TMAX]) {
+  double _fict_[TMAX])
+{
   int t, i, j;
 #pragma scop
   for (t = 0; t < tmax; t++) {
@@ -89,7 +92,8 @@ static void kernel_fdtd_2d(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int tmax = TMAX;
   int nx = NX;
   int ny = NY;

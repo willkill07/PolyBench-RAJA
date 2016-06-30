@@ -5,21 +5,25 @@
 
 #include "PolyBench/Base/adi.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class adi : public ::Base::adi<T> {
+class adi : public ::Base::adi<T>
+{
   using Parent = ::Base::adi<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  adi(Args... args)
-      : ::Base::adi<T>{std::string{"ADI - RAJA OpenMP"}, args...} {
+  adi(Args... args) : ::Base::adi<T>{std::string{"ADI - RAJA OpenMP"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, u);
 
@@ -32,7 +36,8 @@ public:
       [=](int i, int j) { u->at(i, j) = static_cast<T>(i + n - j) / n; });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     T DX(static_cast<T>(1.0) / n);
     T DY(static_cast<T>(1.0) / n);

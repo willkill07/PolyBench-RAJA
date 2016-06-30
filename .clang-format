@@ -2,7 +2,7 @@ BasedOnStyle : LLVM
 IndentWidth : 2
 ContinuationIndentWidth : 2
 
-BreakBeforeBraces : Attach
+BreakBeforeBraces : Linux
 UseTab: Never
 AllowShortIfStatementsOnASingleLine : false
 AllowShortFunctionsOnASingleLine : false
@@ -16,7 +16,7 @@ ColumnLimit : 80
 PenaltyBreakBeforeFirstCallParameter : 65000
 PenaltyReturnTypeOnItsOwnLine : 65000
 PenaltyBreakString : 10
-
+AccessModifierOffset : -2
 
 Standard : Cpp11
 

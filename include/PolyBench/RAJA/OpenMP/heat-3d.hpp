@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/heat-3d.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class heat_3d : public ::Base::heat_3d<T> {
+class heat_3d : public ::Base::heat_3d<T>
+{
   using Parent = ::Base::heat_3d<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  heat_3d(Args... args) : ::Base::heat_3d<T>{"HEAT-3D - RAJA OpenMP", args...} {
+  heat_3d(Args... args) : ::Base::heat_3d<T>{"HEAT-3D - RAJA OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A, B);
     using init_pol = NestedPolicy<ExecList<omp_collapse_nowait_exec,
@@ -37,7 +42,8 @@ public:
       });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, tsteps);
     USE(READWRITE, A, B);
     using exec_pol = NestedPolicy<ExecList<omp_collapse_nowait_exec,

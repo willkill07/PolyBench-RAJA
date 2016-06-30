@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/gramschmidt.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class gramschmidt : public ::Base::gramschmidt<T> {
+class gramschmidt : public ::Base::gramschmidt<T>
+{
   using Parent = ::Base::gramschmidt<T>;
 
 public:
@@ -16,10 +19,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   gramschmidt(Args... args)
-      : ::Base::gramschmidt<T>{"GRAMSCHMIDT - RAJA Base", args...} {
+      : ::Base::gramschmidt<T>{"GRAMSCHMIDT - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, Q, R);
     using exec_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
@@ -36,7 +41,8 @@ public:
       [=](int i, int j) { R->at(i, j) = static_cast<T>(0.0); });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, R, Q);
     forall<seq_exec>(0, n, [=](int k) {

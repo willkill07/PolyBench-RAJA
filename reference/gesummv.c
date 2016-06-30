@@ -14,7 +14,8 @@ static void init_array(
   double *beta,
   double A[N][N],
   double B[N][N],
-  double x[N]) {
+  double x[N])
+{
   int i, j;
   *alpha = 1.5;
   *beta = 1.2;
@@ -27,7 +28,8 @@ static void init_array(
   }
 }
 
-static void print_array(int n, double y[N]) {
+static void print_array(int n, double y[N])
+{
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "y");
@@ -48,7 +50,8 @@ static void kernel_gesummv(
   double B[N][N],
   double tmp[N],
   double x[N],
-  double y[N]) {
+  double y[N])
+{
   int i, j;
 #pragma scop
   for (i = 0; i < n; i++) {
@@ -63,7 +66,8 @@ static void kernel_gesummv(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   double alpha;
   double beta;

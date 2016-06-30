@@ -8,14 +8,16 @@
 /* Include benchmark-specific header. */
 #include "durbin.h"
 
-static void init_array(int n, double r[N]) {
+static void init_array(int n, double r[N])
+{
   int i, j;
   for (i = 0; i < n; i++) {
     r[i] = (n + 1 - i);
   }
 }
 
-static void print_array(int n, double y[N]) {
+static void print_array(int n, double y[N])
+{
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "y");
@@ -28,7 +30,8 @@ static void print_array(int n, double y[N]) {
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-static void kernel_durbin(int n, double r[N], double y[N]) {
+static void kernel_durbin(int n, double r[N], double y[N])
+{
   double z[N];
   double alpha;
   double beta;
@@ -56,7 +59,8 @@ static void kernel_durbin(int n, double r[N], double y[N]) {
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   double(*r)[N];
   r = (double(*)[N])polybench_alloc_data(N, sizeof(double));

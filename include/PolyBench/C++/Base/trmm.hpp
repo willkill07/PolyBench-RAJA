@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/trmm.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class trmm : public ::Base::trmm<T> {
+class trmm : public ::Base::trmm<T>
+{
   using Parent = ::Base::trmm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  trmm(Args... args) : ::Base::trmm<T>{"TRMM - C++ Base", args...} {
+  trmm(Args... args) : ::Base::trmm<T>{"TRMM - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, B);
     for (int i = 0; i < m; i++) {
@@ -30,7 +35,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, alpha, A);
     USE(READWRITE, B);
     for (int i = 0; i < m; i++)

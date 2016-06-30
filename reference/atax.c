@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "atax.h"
 
-static void init_array(int m, int n, double A[M][N], double x[N]) {
+static void init_array(int m, int n, double A[M][N], double x[N])
+{
   int i, j;
   double fn;
   fn = (double)n;
@@ -19,7 +20,8 @@ static void init_array(int m, int n, double A[M][N], double x[N]) {
       A[i][j] = (double)((i + j) % n) / (5 * m);
 }
 
-static void print_array(int n, double y[N]) {
+static void print_array(int n, double y[N])
+{
   int i;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "y");
@@ -38,7 +40,8 @@ static void kernel_atax(
   double A[M][N],
   double x[N],
   double y[N],
-  double tmp[M]) {
+  double tmp[M])
+{
   int i, j;
 #pragma scop
   for (i = 0; i < n; i++)
@@ -53,7 +56,8 @@ static void kernel_atax(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int m = M;
   int n = N;
   double(*A)[M][N];

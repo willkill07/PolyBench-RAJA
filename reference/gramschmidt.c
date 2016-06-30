@@ -13,7 +13,8 @@ static void init_array(
   int n,
   double A[M][N],
   double R[N][N],
-  double Q[M][N]) {
+  double Q[M][N])
+{
   int i, j;
   for (i = 0; i < m; i++)
     for (j = 0; j < n; j++) {
@@ -30,7 +31,8 @@ static void print_array(
   int n,
   double A[M][N],
   double R[N][N],
-  double Q[M][N]) {
+  double Q[M][N])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "R");
@@ -57,7 +59,8 @@ static void kernel_gramschmidt(
   int n,
   double A[M][N],
   double R[N][N],
-  double Q[M][N]) {
+  double Q[M][N])
+{
   int i, j, k;
   double nrm;
 #pragma scop
@@ -79,7 +82,8 @@ static void kernel_gramschmidt(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int m = M;
   int n = N;
   double(*A)[M][N];

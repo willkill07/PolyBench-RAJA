@@ -30,7 +30,8 @@ struct PolybenchData {
   } start, end;
 } _PolybenchData;
 
-static double rtclock() {
+static double rtclock()
+{
   struct timeval Tp;
   int stat;
   stat = gettimeofday(&Tp, NULL);
@@ -39,7 +40,8 @@ static double rtclock() {
   return (Tp.tv_sec + Tp.tv_usec * 1.0e-6);
 }
 
-static unsigned long long int rdtsc() {
+static unsigned long long int rdtsc()
+{
   unsigned long long int ret = 0;
   unsigned int cycles_lo;
   unsigned int cycles_hi;
@@ -49,7 +51,8 @@ static unsigned long long int rdtsc() {
   return ret;
 }
 
-void polybench_flush_cache() {
+void polybench_flush_cache()
+{
   int cs = POLYBENCH_CACHE_SIZE_KB * 1024 / sizeof(double);
   double *flush = (double *)calloc(cs, sizeof(double));
   int i;
@@ -63,11 +66,13 @@ void polybench_flush_cache() {
   free(flush);
 }
 
-void polybench_prepare_instruments() {
+void polybench_prepare_instruments()
+{
   polybench_flush_cache();
 }
 
-void polybench_timer_start() {
+void polybench_timer_start()
+{
   polybench_prepare_instruments();
 #ifndef POLYBENCH_CYCLE_ACCURATE_TIMER
   _PolybenchData.start.time = rtclock();
@@ -76,7 +81,8 @@ void polybench_timer_start() {
 #endif
 }
 
-void polybench_timer_stop() {
+void polybench_timer_stop()
+{
 #ifndef POLYBENCH_CYCLE_ACCURATE_TIMER
   _PolybenchData.end.time = rtclock();
 #else
@@ -84,7 +90,8 @@ void polybench_timer_stop() {
 #endif
 }
 
-void polybench_timer_print() {
+void polybench_timer_print()
+{
 #ifdef POLYBENCH_GFLOPS
   if (polybench_program_total_flops == 0) {
     printf(
@@ -106,11 +113,13 @@ void polybench_timer_print() {
 #endif
 }
 
-void polybench_free_data(void *ptr) {
+void polybench_free_data(void *ptr)
+{
   free(ptr);
 }
 
-void *polybench_alloc_data(unsigned long long int n, int elt_size) {
+void *polybench_alloc_data(unsigned long long int n, int elt_size)
+{
   void *data;
   posix_memalign(&data, POLYBENCH_CACHE_LINE_SIZE_B, elt_size * n);
   return data;

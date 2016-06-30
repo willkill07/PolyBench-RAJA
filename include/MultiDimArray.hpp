@@ -21,7 +21,8 @@ using CPtr = const Ptr<T>;
 constexpr const int MULTIDIMARRAY_ALIGNMENT = 512;
 
 template <typename T, size_t N>
-class MultiDimArray {
+class MultiDimArray
+{
   using DimArray = std::array<size_t, N>;
 
   DimArray extents{};
@@ -30,14 +31,16 @@ class MultiDimArray {
   Ptr<T> rawData{nullptr};
   bool owner{false};
 
-  inline size_t calculateSize() const noexcept {
+  inline size_t calculateSize() const
+  {
     size_t allocSize{1};
     for (size_t i{0}; i < N; ++i)
       allocSize *= extents[i];
     return allocSize;
   }
 
-  inline Ptr<T> allocData() const noexcept {
+  inline Ptr<T> allocData() const
+  {
     void *data;
     if (posix_memalign(&data, MULTIDIMARRAY_ALIGNMENT, size * sizeof(T))) {
       exit(-1);
@@ -45,7 +48,8 @@ class MultiDimArray {
     return static_cast<Ptr<T>>(data);
   }
 
-  inline DimArray calculateCoeffs() const noexcept {
+  inline DimArray calculateCoeffs() const
+  {
     DimArray res;
     size_t off{1};
     for (auto i = int{N - 1}; i >= 0; --i) {
@@ -56,12 +60,14 @@ class MultiDimArray {
   }
 
   template <size_t Dim, typename Length, typename... Lengths>
-  inline size_t computeOffset(Length next, Lengths... rest) const noexcept {
+  inline size_t computeOffset(Length next, Lengths... rest) const
+  {
     return next * coeffs[Dim] + computeOffset<Dim + 1>(rest...);
   }
 
   template <size_t Dim, typename Length>
-  inline size_t computeOffset(Length next) const noexcept {
+  inline size_t computeOffset(Length next) const
+  {
     return next;
   }
 
@@ -74,43 +80,53 @@ public:
   using reference = T &;
   using const_reference = const T &;
 
-  iterator begin() {
+  iterator begin()
+  {
     return rawData;
   }
-  const_iterator begin() const {
+  const_iterator begin() const
+  {
     return rawData;
   }
-  const_iterator cbegin() const {
+  const_iterator cbegin() const
+  {
     return rawData;
   }
-  iterator end() {
+  iterator end()
+  {
     return rawData + size;
   }
-  const_iterator end() const {
+  const_iterator end() const
+  {
     return rawData + size;
   }
-  const_iterator cend() const {
+  const_iterator cend() const
+  {
     return rawData + size;
   }
 
   MultiDimArray() = delete;
 
-  DimArray dims() {
+  DimArray dims()
+  {
     return extents;
   }
-  DimArray offsets() {
+  DimArray offsets()
+  {
     return coeffs;
   }
 
   template <size_t M>
-  typename std::enable_if<(M < N), size_t>::type dim() {
+  typename std::enable_if<(M < N), size_t>::type dim()
+  {
     return extents[M];
   }
 
   template <
     typename... DimensionLengths,
     typename = typename std::enable_if<sizeof...(DimensionLengths) == N>::type>
-  explicit MultiDimArray<T, N>(DimensionLengths... lengths) noexcept {
+  explicit MultiDimArray<T, N>(DimensionLengths... lengths)
+  {
     extents = DimArray{{static_cast<size_t>(lengths)...}};
     coeffs = calculateCoeffs();
     size = calculateSize();
@@ -118,7 +134,8 @@ public:
     owner = true;
   }
 
-  ~MultiDimArray<T, N>() {
+  ~MultiDimArray<T, N>()
+  {
     if (owner) {
       free(rawData);
       rawData = nullptr;
@@ -126,7 +143,8 @@ public:
     }
   }
 
-  inline void swap(MultiDimArray<T, N> &rhs) noexcept {
+  inline void swap(MultiDimArray<T, N> &rhs)
+  {
     if (&rhs != this) {
       using std::swap;
       swap(extents, rhs.extents);
@@ -137,22 +155,25 @@ public:
     }
   }
 
-  inline MultiDimArray<T, N> &operator=(MultiDimArray<T, N> rhs) noexcept {
+  inline MultiDimArray<T, N> &operator=(MultiDimArray<T, N> rhs)
+  {
     this->swap(rhs);
     return *this;
   }
 
   template <typename... Ind>
   inline typename std::enable_if<sizeof...(Ind) == N, T &>::type operator()(
-    Ind... indices) noexcept {
+    Ind... indices)
+  {
     Ptr<T> ptr = static_cast<Ptr<T>>(
       __builtin_assume_aligned(rawData, MULTIDIMARRAY_ALIGNMENT));
     return ptr[computeOffset<0>(indices...)];
   }
 
   template <typename... Ind>
-  inline typename std::enable_if<sizeof...(Ind) == N, T &>::type at(
-    Ind... indices) noexcept {
+  inline
+    typename std::enable_if<sizeof...(Ind) == N, T &>::type at(Ind... indices)
+  {
     Ptr<T> ptr = static_cast<Ptr<T>>(
       __builtin_assume_aligned(rawData, MULTIDIMARRAY_ALIGNMENT));
     return ptr[computeOffset<0>(indices...)];
@@ -160,7 +181,8 @@ public:
 
   template <typename... Ind>
   inline typename std::enable_if<sizeof...(Ind) == N, const T &>::type
-  operator()(Ind... indices) const noexcept {
+  operator()(Ind... indices) const
+  {
     CPtr<T> ptr = static_cast<Ptr<T>>(
       __builtin_assume_aligned(rawData, MULTIDIMARRAY_ALIGNMENT));
     return ptr[computeOffset<0>(indices...)];
@@ -168,7 +190,8 @@ public:
 
   template <typename... Ind>
   inline typename std::enable_if<sizeof...(Ind) == N, const T &>::type at(
-    Ind... indices) const noexcept {
+    Ind... indices) const
+  {
     CPtr<T> ptr = static_cast<Ptr<T>>(
       __builtin_assume_aligned(rawData, MULTIDIMARRAY_ALIGNMENT));
     return ptr[computeOffset<0>(indices...)];
@@ -178,7 +201,8 @@ public:
     const MultiDimArray<T, N> *a,
     const MultiDimArray<T, N> *b,
     T epsilon,
-    bool print = true) {
+    bool print = true)
+  {
     auto res =
       std::mismatch(a->begin(), a->end(), b->begin(), [epsilon](T va, T vb) {
         return std::abs(va - vb) <= epsilon;
@@ -194,7 +218,8 @@ public:
 };
 
 template <typename T, size_t N>
-inline void swap(MultiDimArray<T, N> &a, MultiDimArray<T, N> &b) noexcept {
+inline void swap(MultiDimArray<T, N> &a, MultiDimArray<T, N> &b)
+{
   a.swap(b);
 }
 

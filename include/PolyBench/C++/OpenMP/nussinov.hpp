@@ -3,19 +3,24 @@
 
 #include "PolyBench/Base/nussinov.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
-class nussinov : public ::Base::nussinov {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
+class nussinov : public ::Base::nussinov
+{
   using Parent = ::Base::nussinov;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  nussinov(Args... args) : ::Base::nussinov{"NUSSINOV - C++ OpenMP", args...} {
+  nussinov(Args... args) : ::Base::nussinov{"NUSSINOV - C++ OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, table, seq);
     for (int i = 0; i < n; i++) {
@@ -26,7 +31,8 @@ public:
         table->at(i, j) = 0;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, seq);
     USE(READWRITE, table);
     for (int i = n - 1; i >= 0; i--) {

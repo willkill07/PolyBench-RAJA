@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/ludcmp.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class ludcmp : public ::Base::ludcmp<T> {
+class ludcmp : public ::Base::ludcmp<T>
+{
   using Parent = ::Base::ludcmp<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  ludcmp(Args... args) : ::Base::ludcmp<T>{"LUDCMP - RAJA Base", args...} {
+  ludcmp(Args... args) : ::Base::ludcmp<T>{"LUDCMP - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n, fn);
     USE(READWRITE, A, x, y, b);
     Arr2D<T> *B = new Arr2D<T>{n, n};
@@ -49,7 +54,8 @@ public:
     delete B;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n);
     USE(READWRITE, A, y, x, b);
     forall<simd_exec>(0, n, [=](int i) {

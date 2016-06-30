@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/syr2k.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class syr2k : public ::Base::syr2k<T> {
+class syr2k : public ::Base::syr2k<T>
+{
   using Parent = ::Base::syr2k<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  syr2k(Args... args) : ::Base::syr2k<T>{"SYR2K - C++ Base", args...} {
+  syr2k(Args... args) : ::Base::syr2k<T>{"SYR2K - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, C, B);
     for (int i = 0; i < n; i++)
@@ -30,7 +35,8 @@ public:
       }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, alpha, beta, A, B);
     USE(READWRITE, C);
     for (int i = 0; i < n; i++) {

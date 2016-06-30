@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "floyd-warshall.h"
 
-static void init_array(int n, int path[N][N]) {
+static void init_array(int n, int path[N][N])
+{
   int i, j;
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++) {
@@ -18,7 +19,8 @@ static void init_array(int n, int path[N][N]) {
     }
 }
 
-static void print_array(int n, int path[N][N]) {
+static void print_array(int n, int path[N][N])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "path");
@@ -32,7 +34,8 @@ static void print_array(int n, int path[N][N]) {
   fprintf(stderr, "==END   DUMP_ARRAYS==\n");
 }
 
-static void kernel_floyd_warshall(int n, int path[N][N]) {
+static void kernel_floyd_warshall(int n, int path[N][N])
+{
   int i, j, k;
 #pragma scop
   for (k = 0; k < n; k++) {
@@ -45,7 +48,8 @@ static void kernel_floyd_warshall(int n, int path[N][N]) {
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   int(*path)[N][N];
   path = (int(*)[N][N])polybench_alloc_data((N) * (N), sizeof(int));

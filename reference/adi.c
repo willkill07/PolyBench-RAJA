@@ -8,7 +8,8 @@
 /* Include benchmark-specific header. */
 #include "adi.h"
 
-static void init_array(int n, double u[N][N]) {
+static void init_array(int n, double u[N][N])
+{
   int i, j;
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++) {
@@ -16,7 +17,8 @@ static void init_array(int n, double u[N][N]) {
     }
 }
 
-static void print_array(int n, double u[N][N]) {
+static void print_array(int n, double u[N][N])
+{
   int i, j;
   fprintf(stderr, "==BEGIN DUMP_ARRAYS==\n");
   fprintf(stderr, "begin dump: %s", "u");
@@ -37,7 +39,8 @@ static void kernel_adi(
   double u[N][N],
   double v[N][N],
   double p[N][N],
-  double q[N][N]) {
+  double q[N][N])
+{
   int t, i, j;
   double DX, DY, DT;
   double B1, B2;
@@ -94,7 +97,8 @@ static void kernel_adi(
 #pragma endscop
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   int n = N;
   int tsteps = TSTEPS;
   double(*u)[N][N];

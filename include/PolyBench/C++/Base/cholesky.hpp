@@ -3,10 +3,13 @@
 
 #include "PolyBench/Base/cholesky.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class cholesky : public ::Base::cholesky<T> {
+class cholesky : public ::Base::cholesky<T>
+{
   using Parent = ::Base::cholesky<T>;
 
 public:
@@ -14,10 +17,12 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   cholesky(Args... args)
-      : ::Base::cholesky<T>{std::string{"CHOLESKY - C++ Base"}, args...} {
+      : ::Base::cholesky<T>{std::string{"CHOLESKY - C++ Base"}, args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     Arr2D<T> *B = new Arr2D<T>{n, n};
@@ -42,7 +47,8 @@ public:
     delete B;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n);
     USE(READWRITE, A);
     for (int i = 0; i < n; i++) {

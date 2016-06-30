@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class trisolv : public PolyBenchKernel {
+class trisolv : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int>;
   using arg_count = std::tuple_size<args>::type;
@@ -15,19 +17,22 @@ public:
   Arr2D<T> *L;
   Arr1D<T> *x, *b;
 
-  trisolv(std::string name, int n_) : PolyBenchKernel{name}, n{n_} {
+  trisolv(std::string name, int n_) : PolyBenchKernel{name}, n{n_}
+  {
     L = new Arr2D<T>{n, n};
     x = new Arr1D<T>{n};
     b = new Arr1D<T>{n};
   }
 
-  ~trisolv() {
+  ~trisolv()
+  {
     delete L;
     delete x;
     delete b;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr1D<T>::compare(
       this->x, dynamic_cast<const trisolv *>(other)->x, static_cast<T>(1.0e-3));
   }

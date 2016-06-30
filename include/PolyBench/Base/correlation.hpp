@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class correlation : public PolyBenchKernel {
+class correlation : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int, int>;
   using arg_count = std::tuple_size<args>::type;
@@ -17,21 +19,24 @@ public:
   Arr1D<T> *mean, *stddev;
 
   correlation(std::string name, int n_, int m_)
-      : PolyBenchKernel{name}, n{n_}, m{m_}, float_n{static_cast<T>(n)} {
+      : PolyBenchKernel{name}, n{n_}, m{m_}, float_n{static_cast<T>(n)}
+  {
     data = new Arr2D<T>{n, m};
     corr = new Arr2D<T>{m, m};
     mean = new Arr1D<T>{m};
     stddev = new Arr1D<T>{m};
   }
 
-  ~correlation() {
+  ~correlation()
+  {
     delete data;
     delete corr;
     delete mean;
     delete stddev;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<T>::compare(
       this->corr,
       dynamic_cast<const correlation *>(other)->corr,

@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class mm3 : public PolyBenchKernel {
+class mm3 : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int, int, int, int, int>;
   using arg_count = std::tuple_size<args>::type;
@@ -15,7 +17,8 @@ public:
   int ni, nj, nk, nl, nm;
 
   mm3(std::string n, int ni_, int nj_, int nk_, int nl_, int nm_)
-      : PolyBenchKernel{n}, ni{ni_}, nj{nj_}, nk{nk_}, nl{nl_}, nm{nm_} {
+      : PolyBenchKernel{n}, ni{ni_}, nj{nj_}, nk{nk_}, nl{nl_}, nm{nm_}
+  {
     E = new Arr2D<T>{ni, nj};
     A = new Arr2D<T>{ni, nk};
     B = new Arr2D<T>{nk, nj};
@@ -25,7 +28,8 @@ public:
     G = new Arr2D<T>{ni, nl};
   }
 
-  ~mm3() {
+  ~mm3()
+  {
     delete A;
     delete B;
     delete C;
@@ -35,7 +39,8 @@ public:
     delete G;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<T>::compare(
       this->G, dynamic_cast<const mm3 *>(other)->G, static_cast<T>(1.0e-3));
   }

@@ -5,10 +5,13 @@
 
 #include "PolyBench/Base/correlation.hpp"
 
-namespace RAJA {
-namespace OpenMP {
+namespace RAJA
+{
+namespace OpenMP
+{
 template <typename T>
-class correlation : public ::Base::correlation<T> {
+class correlation : public ::Base::correlation<T>
+{
   using Parent = ::Base::correlation<T>;
 
 public:
@@ -17,10 +20,12 @@ public:
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   correlation(Args... args)
       : ::Base::correlation<T>{std::string{"CORRELATION - RAJA OpenMP"},
-                               args...} {
+                               args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, data);
     using init_pol =
@@ -32,7 +37,8 @@ public:
       [=](int i, int j) { data->at(i, j) = static_cast<T>(i * j) / m + i; });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, float_n);
     using exec_pol =
       NestedPolicy<ExecList<omp_parallel_for_exec, simd_exec>,

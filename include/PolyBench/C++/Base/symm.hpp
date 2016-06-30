@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/symm.hpp"
 
-namespace CPlusPlus {
-namespace Base {
+namespace CPlusPlus
+{
+namespace Base
+{
 template <typename T>
-class symm : public ::Base::symm<T> {
+class symm : public ::Base::symm<T>
+{
   using Parent = ::Base::symm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  symm(Args... args) : ::Base::symm<T>{"SYMM - C++ Base", args...} {
+  symm(Args... args) : ::Base::symm<T>{"SYMM - C++ Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, m, n);
     USE(READWRITE, A, C, B);
     for (int i = 0; i < m; i++)
@@ -32,7 +37,8 @@ public:
     }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, m, n, alpha, beta, A, B);
     USE(READWRITE, C);
     for (int i = 0; i < m; i++)

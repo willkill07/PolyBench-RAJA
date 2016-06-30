@@ -3,9 +3,11 @@
 
 #include "PolyBenchKernel.hpp"
 
-namespace Base {
+namespace Base
+{
 template <typename T>
-class gramschmidt : public PolyBenchKernel {
+class gramschmidt : public PolyBenchKernel
+{
 public:
   using args = std::tuple<int, int>;
   using arg_count = std::tuple_size<args>::type;
@@ -15,19 +17,22 @@ public:
   Arr2D<T> *A, *R, *Q;
 
   gramschmidt(std::string name, int m_, int n_)
-      : PolyBenchKernel{name}, m{m_}, n{n_} {
+      : PolyBenchKernel{name}, m{m_}, n{n_}
+  {
     A = new Arr2D<T>{m, n};
     R = new Arr2D<T>{n, n};
     Q = new Arr2D<T>{m, n};
   }
 
-  ~gramschmidt() {
+  ~gramschmidt()
+  {
     delete A;
     delete R;
     delete Q;
   }
 
-  virtual bool compare(const PolyBenchKernel *other) {
+  virtual bool compare(const PolyBenchKernel *other)
+  {
     return Arr2D<T>::compare(
              this->A,
              dynamic_cast<const gramschmidt *>(other)->A,

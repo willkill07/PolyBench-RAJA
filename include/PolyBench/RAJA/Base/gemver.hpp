@@ -5,20 +5,25 @@
 
 #include "PolyBench/Base/gemver.hpp"
 
-namespace RAJA {
-namespace Base {
+namespace RAJA
+{
+namespace Base
+{
 template <typename T>
-class gemver : public ::Base::gemver<T> {
+class gemver : public ::Base::gemver<T>
+{
   using Parent = ::Base::gemver<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  gemver(Args... args) : ::Base::gemver<T>{"GEMVER - RAJA Base", args...} {
+  gemver(Args... args) : ::Base::gemver<T>{"GEMVER - RAJA Base", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, fn, n);
     USE(READWRITE, u1, u2, v1, v2, w, x, y, z, A);
     forall<simd_exec>(0, n, [=](int i) {
@@ -36,7 +41,8 @@ public:
     });
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, n, alpha, beta, u1, u2, v1, v2, y, z, A);
     USE(READWRITE, x, w);
     using exec_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;

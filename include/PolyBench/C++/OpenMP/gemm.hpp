@@ -3,20 +3,25 @@
 
 #include "PolyBench/Base/gemm.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class gemm : public ::Base::gemm<T> {
+class gemm : public ::Base::gemm<T>
+{
   using Parent = ::Base::gemm<T>;
 
 public:
   template <typename... Args,
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
-  gemm(Args... args) : ::Base::gemm<T>{"GEMM - C++ OpenMP", args...} {
+  gemm(Args... args) : ::Base::gemm<T>{"GEMM - C++ OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, ni, nj, nk);
     USE(READWRITE, C, A, B);
     for (int i = 0; i < ni; i++)
@@ -30,7 +35,8 @@ public:
         B->at(i, j) = static_cast<T>(i * (j + 2) % nj) / nj;
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, ni, nj, nk, alpha, beta, A, B);
     USE(READWRITE, C);
     for (int i = 0; i < ni; i++) {

@@ -3,16 +3,21 @@
 
 #include "PolyBench/Base/fdtd-2d.hpp"
 
-namespace CPlusPlus {
-namespace OpenMP {
+namespace CPlusPlus
+{
+namespace OpenMP
+{
 template <typename T>
-class fdtd_2d : public ::Base::fdtd_2d<T> {
+class fdtd_2d : public ::Base::fdtd_2d<T>
+{
 public:
   template <typename... Args>
-  fdtd_2d(Args... args) : ::Base::fdtd_2d<T>{"FDTD-2D - C++ OpenMP", args...} {
+  fdtd_2d(Args... args) : ::Base::fdtd_2d<T>{"FDTD-2D - C++ OpenMP", args...}
+  {
   }
 
-  virtual void init() {
+  virtual void init()
+  {
     USE(READ, tmax, nx, ny);
     USE(READWRITE, _fict_, ex, ey, hz);
     for (int i = 0; i < tmax; i++)
@@ -25,7 +30,8 @@ public:
       }
   }
 
-  virtual void exec() {
+  virtual void exec()
+  {
     USE(READ, nx, ny, _fict_, tmax);
     USE(READWRITE, ex, ey, hz);
     for (int t = 0; t < tmax; t++) {
