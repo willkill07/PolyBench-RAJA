@@ -19,7 +19,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   deriche(Args... args)
-      : ::Base::deriche<T>{std::string{"DERICHE - RAJA OpenMP"}, args...}
+  : ::Base::deriche<T>{std::string{"DERICHE - RAJA OpenMP"}, args...}
   {
   }
 

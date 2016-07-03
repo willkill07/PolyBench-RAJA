@@ -17,7 +17,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   bicg(Args... args)
-      : ::Base::bicg<T>{std::string{"BICG - C++ OpenMP"}, args...}
+  : ::Base::bicg<T>{std::string{"BICG - C++ OpenMP"}, args...}
   {
   }
 

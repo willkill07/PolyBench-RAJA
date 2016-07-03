@@ -17,7 +17,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   atax(Args... args)
-      : ::Base::atax<T>{std::string{"ATAX - C++ OpenMP"}, args...}
+  : ::Base::atax<T>{std::string{"ATAX - C++ OpenMP"}, args...}
   {
   }
 

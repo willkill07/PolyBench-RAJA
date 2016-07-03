@@ -13,33 +13,29 @@ public:
   using arg_count = std::tuple_size<args>::type;
   using default_datatype = float;
 
-  Arr2D<T> *imgIn, *imgOut, *y1, *y2;
   int w, h;
   T alpha;
+  std::shared_ptr<Arr2D<T>> imgIn, imgOut, y1, y2;
 
   deriche(std::string name, int w_, int h_)
-      : PolyBenchKernel{name}, w{w_}, h{h_}, alpha{static_cast<T>(0.25)}
+  : PolyBenchKernel{name},
+    w{w_},
+    h{h_},
+    alpha{static_cast<T>(0.25)},
+    imgIn{new Arr2D<T>{w, h}},
+    imgOut{new Arr2D<T>{w, h}},
+    y1{new Arr2D<T>{w, h}},
+    y2{new Arr2D<T>{w, h}}
   {
-    imgIn = new Arr2D<T>{w, h};
-    imgOut = new Arr2D<T>{w, h};
-    y1 = new Arr2D<T>{w, h};
-    y2 = new Arr2D<T>{w, h};
-  }
-
-  ~deriche()
-  {
-    delete imgIn;
-    delete imgOut;
-    delete y1;
-    delete y2;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr2D<T>::compare(
-      this->imgOut,
-      dynamic_cast<const deriche *>(other)->imgOut,
-      static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr2D<T>::compare(this->imgOut.get(), o->imgOut.get(), eps);
   }
 };
 } // Base

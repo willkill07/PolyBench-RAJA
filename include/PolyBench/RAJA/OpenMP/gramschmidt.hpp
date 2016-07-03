@@ -19,7 +19,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   gramschmidt(Args... args)
-      : ::Base::gramschmidt<T>{"GRAMSCHMIDT - RAJA OpenMP", args...}
+  : ::Base::gramschmidt<T>{"GRAMSCHMIDT - RAJA OpenMP", args...}
   {
   }
 

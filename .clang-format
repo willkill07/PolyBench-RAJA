@@ -17,7 +17,7 @@ PenaltyBreakBeforeFirstCallParameter : 65000
 PenaltyReturnTypeOnItsOwnLine : 65000
 PenaltyBreakString : 10
 AccessModifierOffset : -2
-
+ConstructorInitializerIndentWidth : 0
 Standard : Cpp11
 
 # These improve formatting results but require clang 3.6/7 or higher

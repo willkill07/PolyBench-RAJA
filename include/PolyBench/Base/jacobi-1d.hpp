@@ -14,25 +14,24 @@ public:
   using default_datatype = double;
 
   int n, tsteps;
-  Arr1D<T> *A, *B;
+  std::shared_ptr<Arr1D<T>> A, B;
 
   jacobi_1d(std::string name, int n_, int tsteps_)
-      : PolyBenchKernel{name}, n{n_}, tsteps{tsteps_}
+  : PolyBenchKernel{name},
+    n{n_},
+    tsteps{tsteps_},
+    A{new Arr1D<T>{n}},
+    B{new Arr1D<T>{n}}
   {
-    A = new Arr1D<T>{n};
-    B = new Arr1D<T>{n};
-  }
-
-  ~jacobi_1d()
-  {
-    delete A;
-    delete B;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr1D<T>::compare(
-      this->A, dynamic_cast<const jacobi_1d *>(other)->A, static_cast<T>(0));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr1D<T>::compare(this->A.get(), o->A.get(), eps);
   }
 };
 } // Base

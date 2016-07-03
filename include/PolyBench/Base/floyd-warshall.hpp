@@ -13,24 +13,21 @@ public:
   using arg_count = std::tuple_size<args>::type;
   using default_datatype = int;
 
-  Arr2D<T> *path;
   int n;
+  std::shared_ptr<Arr2D<T>> path;
 
-  floyd_warshall(std::string name, int n_) : PolyBenchKernel{name}, n{n_}
+  floyd_warshall(std::string name, int n_)
+  : PolyBenchKernel{name}, n{n_}, path{new Arr2D<T>{n, n}}
   {
-    path = new Arr2D<T>{n, n};
   }
 
-  ~floyd_warshall()
-  {
-    delete path;
-  }
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr2D<T>::compare(
-      this->path,
-      dynamic_cast<const floyd_warshall *>(other)->path,
-      static_cast<T>(0));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{0};
+    return o && Arr2D<T>::compare(this->path.get(), o->path.get(), eps);
   }
 };
 } // Base

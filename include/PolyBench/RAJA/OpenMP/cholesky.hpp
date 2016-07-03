@@ -19,7 +19,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   cholesky(Args... args)
-      : ::Base::cholesky<T>{std::string{"CHOLESKY - RAJA OpenMP"}, args...}
+  : ::Base::cholesky<T>{std::string{"CHOLESKY - RAJA OpenMP"}, args...}
   {
   }
 

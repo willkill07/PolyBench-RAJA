@@ -19,7 +19,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   covariance(Args... args)
-      : ::Base::covariance<T>{std::string{"COVARIANCE - RAJA OpenMP"}, args...}
+  : ::Base::covariance<T>{std::string{"COVARIANCE - RAJA OpenMP"}, args...}
   {
   }
 

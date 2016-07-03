@@ -14,37 +14,27 @@ public:
   using default_datatype = double;
 
   int m, n;
-  Arr2D<T> *A, *R, *Q;
+  std::shared_ptr<Arr2D<T>> A, R, Q;
 
   gramschmidt(std::string name, int m_, int n_)
-      : PolyBenchKernel{name}, m{m_}, n{n_}
+  : PolyBenchKernel{name},
+    m{m_},
+    n{n_},
+    A{new Arr2D<T>{m, n}},
+    R{new Arr2D<T>{n, n}},
+    Q{new Arr2D<T>{m, n}}
   {
-    A = new Arr2D<T>{m, n};
-    R = new Arr2D<T>{n, n};
-    Q = new Arr2D<T>{m, n};
-  }
-
-  ~gramschmidt()
-  {
-    delete A;
-    delete R;
-    delete Q;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr2D<T>::compare(
-             this->A,
-             dynamic_cast<const gramschmidt *>(other)->A,
-             static_cast<T>(1.0e-3))
-           && Arr2D<T>::compare(
-                this->R,
-                dynamic_cast<const gramschmidt *>(other)->R,
-                static_cast<T>(1.0e-3))
-           && Arr2D<T>::compare(
-                this->Q,
-                dynamic_cast<const gramschmidt *>(other)->Q,
-                static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr2D<T>::compare(this->A.get(), o->A.get(), eps)
+           && Arr2D<T>::compare(this->R.get(), o->R.get(), eps)
+           && Arr2D<T>::compare(this->Q.get(), o->Q.get(), eps);
   }
 };
 } // Base

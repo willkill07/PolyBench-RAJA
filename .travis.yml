@@ -1,6 +1,8 @@
 env:
   global:
-    secure: "dWaTF2Th2aULLHsi6oj6edIdqeSzZS/6O31Dt3zeZolDXJl5w8BRNJVZ23slkAhQvcLAYb++liwc7EqAXGCET0266y56plxn7x6P6dcFc/ebIBxKtZ3HPSgKKyfoEvRlHicR893nprB+NsVq9D095n2/dAOdV0oy0+ws7DZzxQTLIt2dwpReloxFFP7NyJszLgWTXTfXj+fybNbEhyBQZvlnsb707pgmWh8Sn3GfvZBbHdwUkKO0xncSXaU0KyR6JYpm7ciWNCwclf9d0CPjaTO5Borex/w+B8AIVakB0zk5GPSxCG6FLck4JMgA8Y77N++pMjyyKHA38lMhMTA9gFdzkW0pioE+fxHykVHusiHxgyuyoxlCKN1tM03ef10c/XbkwBBNZVXki8/Vr0QCI7QmBRWc02NPWmJXvmLPRd6UT3Sd0C7NF05OHfwjolutegeclLUaFvvfCU2Zps6epiLBM2LkTo2UScvyd+CEklDDT1/YDq/TiIMeFWVG9IX8dUfvVjAyHicJoMbnlKUrRs8YhJ9vxYfaihq5qra7uhhaRMSrgQACJT0ywqGET0HLzpHG2E3dXgvdwJERj+ZQsD3dwrgfsNX/UQFwplLalOEC3pSGdWF4zfFj4lzXrB25MzAhJFhgGGfV5PSQVm2uVpE4mSNvj4YGoXj0EfLp2Ts="
+    - secure: "jPmM8XZC7MqWZU3KWBd10h9MG1nT6kaOr8ZX3UkCJfPfanFEFVAEkDYtKS7XI3tFR7W/FVtNf7Uhx5kIGdgQwQ2RFska9aQoftKVotlMQjsPdz2nPht+3Sgz0vbY6+3qgZcgzBjTSJ1/uF6fYtXK7THHm4GPuurruCCTrCmZqflH2BILeCBHuhuMa9WZQOGH8Y0Dok5x+j/aJUqiw0TVo1TtYq05yxJB8qeWmxJgwb7wBolWfdgHDpGGw6qOIDmowd1jNp9hcUCHqr6LkRe9adPV6X0v37EPi7wyOmpXh/AjPeV30BKSsA5CzfhaeD8wr6dO9cdOLjGlcZIBgUutnXW8EZxBj0kTudfY+B4mwfUpoCUdiMv8as0iOp1wMepyTbuKYdpig6fRyywxdW56hQXdQnaHA63OJsZA/B5v5lO5NJE2/EETKbi+ZQoi6Exh7QebC7OhMAntnTYgljxjUkt6EOrSrFClzpG8pLZaUhmDH5x+IY9y1uXFJKl8aTKjwTZdU7UMqQFiwdLzGo/00/n1VLxmaJoE/xeBQ9T8n8VnjgdN39NEeyWQf8CWvtdpjYlpXL1bDZKuL21POUvHcr5QdravVxomZiBZzya5BAfHjVWukJ+7mW/RnuPH4Z8QwBKLmas0DkzSX8BFUQt7C4JVKzrwiCiG2zY4xcX0xv8="
+    - secure: "dWaTF2Th2aULLHsi6oj6edIdqeSzZS/6O31Dt3zeZolDXJl5w8BRNJVZ23slkAhQvcLAYb++liwc7EqAXGCET0266y56plxn7x6P6dcFc/ebIBxKtZ3HPSgKKyfoEvRlHicR893nprB+NsVq9D095n2/dAOdV0oy0+ws7DZzxQTLIt2dwpReloxFFP7NyJszLgWTXTfXj+fybNbEhyBQZvlnsb707pgmWh8Sn3GfvZBbHdwUkKO0xncSXaU0KyR6JYpm7ciWNCwclf9d0CPjaTO5Borex/w+B8AIVakB0zk5GPSxCG6FLck4JMgA8Y77N++pMjyyKHA38lMhMTA9gFdzkW0pioE+fxHykVHusiHxgyuyoxlCKN1tM03ef10c/XbkwBBNZVXki8/Vr0QCI7QmBRWc02NPWmJXvmLPRd6UT3Sd0C7NF05OHfwjolutegeclLUaFvvfCU2Zps6epiLBM2LkTo2UScvyd+CEklDDT1/YDq/TiIMeFWVG9IX8dUfvVjAyHicJoMbnlKUrRs8YhJ9vxYfaihq5qra7uhhaRMSrgQACJT0ywqGET0HLzpHG2E3dXgvdwJERj+ZQsD3dwrgfsNX/UQFwplLalOEC3pSGdWF4zfFj4lzXrB25MzAhJFhgGGfV5PSQVm2uVpE4mSNvj4YGoXj0EfLp2Ts="
+
 matrix:
   include:
    - sudo: required
@@ -45,9 +47,9 @@ matrix:
        - _CC=gcc-6
        - _CXX=g++-6
        - OMP_NUM_THREADS=2
-   - compiler: clang-3.8
-     sudo: required
+   - sudo: required
      dist: trusty
+     compiler: clang-3.8
      addons:
        apt:
          sources:
@@ -75,6 +77,28 @@ matrix:
          - _CXX=icpc
          - OMP_NUM_THREADS=2
          - KMP_AFFINITY=scatter
+   - sudo: required
+     dist: trusty
+     compiler: coverity
+     env:
+       - COMPILER=g++-6
+       - _CC=gcc-6
+       - _CXX=g++-6
+     addons:
+       apt:
+         sources:
+           - ubuntu-toolchain-r-test
+         packages:
+           - g++-6
+       coverity_scan:
+         project:
+           name: "willkill07/PolyBench-RAJA"
+           description: "PolyBench kernels written in the RAJA Portability Layer"
+         notification_email: william.killian@gmail.com
+         build_command_prepend: cov-configure -co /usr/bin/g++-6 -- -march=native && mkdir build && pushd build && CC=$CC CXX=$CXX cmake .. && popd
+         build_command: "make -C build all"
+         branch_pattern: master
+
 before_install:
   - sudo apt-get update -qq
   - mkdir -p $HOME/pkg
@@ -83,6 +107,7 @@ before_install:
   - export CC=$_CC
   - export CXX=$_CXX
 script:
+  - if [[ ${COVERITY_SCAN_BRANCH} == 1 ]]; then exit; fi
   - if [[ -n $INTEL_DOWNLOAD ]]; then source ${PWD}/.travis/config-${VERSION}.sh ; fi
   - $CC --version
   - $CXX --version

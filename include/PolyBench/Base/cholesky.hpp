@@ -13,23 +13,21 @@ public:
   using arg_count = std::tuple_size<args>::type;
   using default_datatype = double;
 
-  Arr2D<T> *A;
   int n;
+  std::shared_ptr<Arr2D<T>> A;
 
-  cholesky(std::string name, int n_) : PolyBenchKernel{name}, n{n_}
+  cholesky(std::string name, int n_)
+  : PolyBenchKernel{name}, n{n_}, A{new Arr2D<T>{n, n}}
   {
-    A = new Arr2D<T>{n, n};
   }
-  ~cholesky()
-  {
-    delete A;
-  }
+
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr2D<T>::compare(
-      this->A,
-      dynamic_cast<const cholesky *>(other)->A,
-      static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr2D<T>::compare(this->A.get(), o->A.get(), eps);
   }
 };
 } // Base

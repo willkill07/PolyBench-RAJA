@@ -17,7 +17,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   seidel_2d(Args... args)
-      : ::Base::seidel_2d<T>{"SEIDEL-2D - C++ OpenMP", args...}
+  : ::Base::seidel_2d<T>{"SEIDEL-2D - C++ OpenMP", args...}
   {
   }
 

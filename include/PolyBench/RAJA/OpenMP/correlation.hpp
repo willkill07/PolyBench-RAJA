@@ -19,8 +19,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   correlation(Args... args)
-      : ::Base::correlation<T>{std::string{"CORRELATION - RAJA OpenMP"},
-                               args...}
+  : ::Base::correlation<T>{std::string{"CORRELATION - RAJA OpenMP"}, args...}
   {
   }
 

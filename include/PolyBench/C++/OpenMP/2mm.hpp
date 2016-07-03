@@ -22,19 +22,16 @@ public:
 
   virtual void init()
   {
-    USE(READWRITE, alpha, beta, A, B, C, D);
+    USE(READWRITE, A, B, C, D);
     USE(READ, ni, nj, nk, nl);
-
-    alpha = 1.5;
-    beta = 1.2;
 
     for (int i = 0; i < ni; ++i)
       for (int k = 0; k < nk; ++k)
         A->at(i, k) = static_cast<T>((i * k + 1) % ni) / ni;
 
     for (int k = 0; k < nk; ++k)
-      for (int j = 0; j < ni; ++j)
-        B->at(k, j) = static_cast<T>(k * (j + 1) % nj) / nj;
+      for (int i = 0; i < ni; ++i)
+        B->at(k, i) = static_cast<T>(k * (i + 1) % ni) / ni;
 
     for (int j = 0; j < nj; ++j)
       for (int l = 0; l < nl; ++l)

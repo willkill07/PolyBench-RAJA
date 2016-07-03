@@ -14,37 +14,28 @@ public:
   using default_datatype = double;
 
   int n;
-  Arr2D<T> *A;
-  Arr1D<T> *x1, *x2, *y_1, *y_2;
+  std::shared_ptr<Arr2D<T>> A;
+  std::shared_ptr<Arr1D<T>> x1, x2, y_1, y_2;
 
-  mvt(std::string name, int n_) : PolyBenchKernel{name}, n{n_}
+  mvt(std::string name, int n_)
+  : PolyBenchKernel{name},
+    n{n_},
+    A{new Arr2D<T>{n, n}},
+    x1{new Arr1D<T>{n}},
+    x2{new Arr1D<T>{n}},
+    y_1{new Arr1D<T>{n}},
+    y_2{new Arr1D<T>{n}}
   {
-    A = new Arr2D<T>{n, n};
-    x1 = new Arr1D<T>{n};
-    x2 = new Arr1D<T>{n};
-    y_1 = new Arr1D<T>{n};
-    y_2 = new Arr1D<T>{n};
-  }
-
-  ~mvt()
-  {
-    delete A;
-    delete x1;
-    delete x2;
-    delete y_1;
-    delete y_2;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr1D<T>::compare(
-             this->x1,
-             dynamic_cast<const mvt *>(other)->x1,
-             static_cast<T>(1.0e-3))
-           && Arr1D<T>::compare(
-                this->x2,
-                dynamic_cast<const mvt *>(other)->x2,
-                static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr1D<T>::compare(this->x1.get(), o->x1.get(), eps)
+           && Arr1D<T>::compare(this->x2.get(), o->x2.get(), eps);
   }
 };
 } // Base

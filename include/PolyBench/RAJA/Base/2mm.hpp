@@ -25,10 +25,7 @@ public:
   virtual void init()
   {
     USE(READ, ni, nj, nk, nl);
-    USE(READWRITE, alpha, beta, A, B, C, D);
-
-    alpha = static_cast<T>(1.5);
-    beta = static_cast<T>(1.2);
+    USE(READWRITE, A, B, C, D);
 
     using init_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
     forallN<init_pol>(
@@ -40,9 +37,9 @@ public:
 
     forallN<init_pol>(
       RangeSegment{0, nk},
-      RangeSegment{0, nj},
-      [=](int k, int j) {
-        B->at(k, j) = static_cast<T>(k * (j + 1) % nj) / nj;
+      RangeSegment{0, ni},
+      [=](int k, int i) {
+        B->at(k, i) = static_cast<T>(k * (i + 1) % ni) / ni;
       });
 
     forallN<init_pol>(
@@ -63,32 +60,26 @@ public:
   virtual void exec()
   {
     USE(READ, ni, nj, nk, nl, A, B, C, alpha, beta);
+    USE(READWRITE, D, tmp);
     using exec_pol = NestedPolicy<ExecList<simd_exec, simd_exec>>;
-    {
-      USE(READWRITE, tmp);
-      forallN<exec_pol>(
-        RangeSegment{0, ni},
-        RangeSegment{0, nj},
-        [=](int i, int j) {
-          tmp->at(i, j) = static_cast<T>(0.0);
-          forall<simd_exec>(0, nk, [=](int k) {
-            tmp->at(i, j) += alpha * A->at(i, k) * B->at(k, j);
-          });
+    forallN<exec_pol>(
+      RangeSegment{0, ni},
+      RangeSegment{0, nj},
+      [=](int i, int j) {
+        tmp->at(i, j) = static_cast<T>(0.0);
+        forall<simd_exec>(0, nk, [=](int k) {
+          tmp->at(i, j) += alpha * A->at(i, k) * B->at(k, j);
         });
-    }
-    {
-      USE(READWRITE, D);
-      USE(READ, tmp);
-      forallN<exec_pol>(
-        RangeSegment{0, ni},
-        RangeSegment{0, nl},
-        [=](int i, int l) {
-          D->at(i, l) *= beta;
-          forall<simd_exec>(0, nj, [=](int j) {
-            D->at(i, l) += tmp->at(i, j) * C->at(j, l);
-          });
+      });
+    forallN<exec_pol>(
+      RangeSegment{0, ni},
+      RangeSegment{0, nl},
+      [=](int i, int l) {
+        D->at(i, l) *= beta;
+        forall<simd_exec>(0, nj, [=](int j) {
+          D->at(i, l) += tmp->at(i, j) * C->at(j, l);
         });
-    }
+      });
   }
 };
 } // Base

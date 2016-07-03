@@ -13,30 +13,27 @@ public:
   using arg_count = std::tuple_size<args>::type;
   using default_datatype = double;
 
-  Arr2D<T> *u, *v, *p, *q;
   int n, tsteps;
+  std::shared_ptr<Arr2D<T>> u, v, p, q;
 
   adi(std::string name, int n_, int tsteps_)
-      : PolyBenchKernel{name}, n{n_}, tsteps{tsteps_}
+  : PolyBenchKernel{name},
+    n{n_},
+    tsteps{tsteps_},
+    u{new Arr2D<T>{n, n}},
+    v{new Arr2D<T>{n, n}},
+    p{new Arr2D<T>{n, n}},
+    q{new Arr2D<T>{n, n}}
   {
-    u = new Arr2D<T>{n, n};
-    v = new Arr2D<T>{n, n};
-    p = new Arr2D<T>{n, n};
-    q = new Arr2D<T>{n, n};
-  }
-
-  ~adi()
-  {
-    delete u;
-    delete v;
-    delete p;
-    delete q;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr2D<T>::compare(
-      this->u, dynamic_cast<const adi *>(other)->u, static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr2D<T>::compare(this->u.get(), o->u.get(), eps);
   }
 };
 } // Base

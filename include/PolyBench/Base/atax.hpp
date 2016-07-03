@@ -13,30 +13,28 @@ public:
   using arg_count = std::tuple_size<args>::type;
   using default_datatype = double;
 
-  Arr2D<T> *A;
-  Arr1D<T> *x, *y, *tmp;
   int m, n;
+  std::shared_ptr<Arr2D<T>> A;
+  std::shared_ptr<Arr1D<T>> x, y, tmp;
 
-  atax(std::string name, int m_, int n_) : PolyBenchKernel{name}, m{m_}, n{n_}
+  atax(std::string name, int m_, int n_)
+  : PolyBenchKernel{name},
+    m{m_},
+    n{n_},
+    A{new Arr2D<T>{m, n}},
+    x{new Arr1D<T>{n}},
+    y{new Arr1D<T>{n}},
+    tmp{new Arr1D<T>{m}}
   {
-    A = new Arr2D<T>{m, n};
-    x = new Arr1D<T>{n};
-    y = new Arr1D<T>{n};
-    tmp = new Arr1D<T>{m};
-  }
-
-  ~atax()
-  {
-    delete A;
-    delete x;
-    delete y;
-    delete tmp;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr1D<T>::compare(
-      this->y, dynamic_cast<const atax *>(other)->y, static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr1D<T>::compare(this->y.get(), o->y.get(), eps);
   }
 };
 } // Base

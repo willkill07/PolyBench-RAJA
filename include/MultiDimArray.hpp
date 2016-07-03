@@ -208,7 +208,7 @@ public:
         return std::abs(va - vb) <= epsilon;
       });
     if (print && res.first != a->end()) {
-      std::cerr << "mismatch occured at index " << (res.first - a->begin())
+      std::cout << "mismatch occured at index " << (res.first - a->begin())
                 << '\n'
                 << "A[i] = " << *(res.first) << " -- B[i] = " << *(res.second)
                 << std::endl;

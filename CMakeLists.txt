@@ -31,7 +31,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 # RAJA Headers
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/RAJA/include)
 # RAJA_config
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/build/RAJA/include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/RAJA/include)
 
 find_library(RT_LIBRARIES rt)
 

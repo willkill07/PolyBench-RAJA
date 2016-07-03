@@ -17,7 +17,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   jacobi_2d(Args... args)
-      : ::Base::jacobi_2d<T>{"JACOBI-2D - C++ Base", args...}
+  : ::Base::jacobi_2d<T>{"JACOBI-2D - C++ Base", args...}
   {
   }
 

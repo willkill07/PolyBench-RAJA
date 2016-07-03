@@ -1,6 +1,7 @@
 # PolyBench/C-RAJA 0.1.0
 
 [![Build Status](https://travis-ci.org/willkill07/PolyBench-RAJA.svg?branch=master)](https://travis-ci.org/willkill07/PolyBench-RAJA)
+[![Coverity Static Analysis](https://scan.coverity.com/projects/9340/badge.svg)](https://scan.coverity.com/projects/willkill07-polybench-raja)
 
 PolyBench is a benchmark suite of 30 numerical computations with
 static control flow, extracted from operations in various application
@@ -33,14 +34,14 @@ Copyright (c) 2011-2016 the Ohio State University.
 * Instrumentation can be extended or changed by modifying `src/PolyBenchKernel.cpp`
 * **RAJA** is included as a submodule of this repository
 * **RAJA Portability Layer** versions of each kernel are included as well as C++ versions of the original C kernels
+* All kernels are functionally equivalent. Some are parallelized; others just use `simd_exec` or `seq_exec`
+* There are four types of kernels currently in the source tree:
+  * C++ Base -- basic C++ implementations of the PolyBench kernels
+  * C++ OpenMP -- C++ implementations with OpenMP directives added
+  * RAJA Base -- `simd_exec` and `seq_exec` RAJA execution policies
+  * RAJA OpenMP -- `omp_parallel_for_exec` and `omp_collapse_nowait_exec` policies
+* Generic C++ drivers are provided in `./src/` but most edits should happen through `./include/<VERSION>/<KERNEL>.hpp`
 * Dataset sizes are no longer stored with source code. They can be extracted from `common/polybench.spec`
-* Execution script where user can specify problem size is included (see `runall.sh`)
-
-## Current State
-
-All kernels are functionally equivalent. Some are parallelized; others just use `simd_exec` or `seq_exec`
-
-Travis CI is a work-in progress. Currently supporting GCC 4.9, 5.1 and Clang 3.7, 3.8
 
 ## Available benchmarks
 

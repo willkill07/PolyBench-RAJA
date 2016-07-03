@@ -13,25 +13,21 @@ public:
   using arg_count = std::tuple_size<args>::type;
   using default_datatype = double;
 
-  Arr1D<T> *r, *y;
   int n;
+  std::shared_ptr<Arr1D<T>> r, y;
 
-  durbin(std::string name, int n_) : PolyBenchKernel{name}, n{n_}
+  durbin(std::string name, int n_)
+  : PolyBenchKernel{name}, n{n_}, r{new Arr1D<T>{n}}, y{new Arr1D<T>{n}}
   {
-    r = new Arr1D<T>{n};
-    y = new Arr1D<T>{n};
-  }
-
-  ~durbin()
-  {
-    delete r;
-    delete y;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr1D<T>::compare(
-      this->y, dynamic_cast<const durbin *>(other)->y, static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr1D<T>::compare(this->y.get(), o->y.get(), eps);
   }
 };
 } // Base

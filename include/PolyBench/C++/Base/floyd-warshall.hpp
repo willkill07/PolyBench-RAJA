@@ -17,7 +17,7 @@ public:
             typename = typename std::
               enable_if<sizeof...(Args) == Parent::arg_count::value>::type>
   floyd_warshall(Args... args)
-      : ::Base::floyd_warshall<T>{"FLOYD-WARSHALL - C++ Base", args...}
+  : ::Base::floyd_warshall<T>{"FLOYD-WARSHALL - C++ Base", args...}
   {
   }
 

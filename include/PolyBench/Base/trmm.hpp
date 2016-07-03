@@ -14,25 +14,26 @@ public:
   using default_datatype = double;
 
   int m, n;
-  T alpha{static_cast<T>(1.5)};
-  Arr2D<T> *A, *B;
+  T alpha;
+  std::shared_ptr<Arr2D<T>> A, B;
 
-  trmm(std::string name, int m_, int n_) : PolyBenchKernel{name}, m{m_}, n{n_}
+  trmm(std::string name, int m_, int n_)
+  : PolyBenchKernel{name},
+    m{m_},
+    n{n_},
+    alpha{static_cast<T>(1.5)},
+    A{new Arr2D<T>{m, m}},
+    B{new Arr2D<T>{m, n}}
   {
-    A = new Arr2D<T>{m, m};
-    B = new Arr2D<T>{m, n};
-  }
-
-  ~trmm()
-  {
-    delete A;
-    delete B;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr2D<T>::compare(
-      this->B, dynamic_cast<const trmm *>(other)->B, static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr2D<T>::compare(this->B.get(), o->B.get(), eps);
   }
 };
 } // Base

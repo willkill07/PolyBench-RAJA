@@ -14,27 +14,28 @@ public:
   using default_datatype = double;
 
   int m, n;
-  T alpha{static_cast<T>(1.5)}, beta{static_cast<T>(1.2)};
-  Arr2D<T> *A, *C, *B;
+  T alpha, beta;
+  std::shared_ptr<Arr2D<T>> A, C, B;
 
-  syr2k(std::string name, int m_, int n_) : PolyBenchKernel{name}, m{m_}, n{n_}
+  syr2k(std::string name, int m_, int n_)
+  : PolyBenchKernel{name},
+    m{m_},
+    n{n_},
+    alpha{static_cast<T>(1.5)},
+    beta{static_cast<T>(1.2)},
+    A{new Arr2D<T>{n, m}},
+    C{new Arr2D<T>{n, n}},
+    B{new Arr2D<T>{n, m}}
   {
-    A = new Arr2D<T>{n, m};
-    C = new Arr2D<T>{n, n};
-    B = new Arr2D<T>{n, m};
-  }
-
-  ~syr2k()
-  {
-    delete A;
-    delete C;
-    delete B;
   }
 
   virtual bool compare(const PolyBenchKernel *other)
   {
-    return Arr2D<T>::compare(
-      this->C, dynamic_cast<const syr2k *>(other)->C, static_cast<T>(1.0e-3));
+    using Type = typename std::add_pointer<typename std::add_const<
+      typename std::remove_reference<decltype(*this)>::type>::type>::type;
+    auto o = dynamic_cast<Type>(other);
+    auto eps = T{1.0e-3};
+    return o && Arr2D<T>::compare(this->C.get(), o->C.get(), eps);
   }
 };
 } // Base
