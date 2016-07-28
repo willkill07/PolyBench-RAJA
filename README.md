@@ -1,7 +1,9 @@
 # PolyBench/C-RAJA 0.1.0
 
-[![Build Status](https://travis-ci.org/willkill07/PolyBench-RAJA.svg?branch=master)](https://travis-ci.org/willkill07/PolyBench-RAJA)
-[![Coverity Static Analysis](https://scan.coverity.com/projects/9340/badge.svg)](https://scan.coverity.com/projects/willkill07-polybench-raja)
+[![build](https://travis-ci.org/willkill07/PolyBench-RAJA.svg?branch=master)](https://travis-ci.org/willkill07/PolyBench-RAJA)
+[![coverity](https://scan.coverity.com/projects/9340/badge.svg)](https://scan.coverity.com/projects/willkill07-polybench-raja)
+[![codecov](https://codecov.io/gh/willkill07/PolyBench-RAJA/branch/master/graph/badge.svg)](https://codecov.io/gh/willkill07/PolyBench-RAJA)
+
 
 PolyBench is a benchmark suite of 30 numerical computations with
 static control flow, extracted from operations in various application
